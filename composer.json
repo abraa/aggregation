@@ -1,0 +1,24 @@
+{
+  "name": "abraa/aggregation",
+  "description": "第三方支付聚合支付",
+  "minimum-stability": "stable",
+  "license": "MIT",
+  "type": "library",
+  "autoload": {
+    "psr-4": {
+      "pay\\": "src"
+    },
+    "files": [
+      "src/config.php"
+    ]
+  },
+  "require": {
+    "php": ">=5.3.0"
+  },
+  "authors": [
+    {
+      "name": "abraa",
+      "email": "276957690@qq.com"
+    }
+  ]
+}
