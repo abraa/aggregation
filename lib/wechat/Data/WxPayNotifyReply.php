@@ -6,7 +6,7 @@
  *
  */
 namespace Lib\Wechat\Data;
-use Lib\Wechat;
+use \Lib\Wechat\WxPayDataBase;
 
 class WxPayNotifyReply extends  WxPayDataBase
 {
@@ -33,7 +33,7 @@ class WxPayNotifyReply extends  WxPayDataBase
     /**
      *
      * 设置错误信息
-     * @param string $return_code
+     * @param  string $return_code
      */
     public function SetReturn_msg($return_msg)
     {

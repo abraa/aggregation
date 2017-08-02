@@ -6,7 +6,7 @@
  *
  */
 namespace Lib\Wechat\Data;
-use Lib\Wechat;
+use \Lib\Wechat\WxPayDataBase;
 
 class WxPayOrderQuery extends WxPayDataBase
 {

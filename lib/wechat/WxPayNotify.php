@@ -1,13 +1,13 @@
 <?php
 namespace Lib\Wechat;
-use Lib\Wechat\Data;
+use \Lib\Wechat\Data;
 /**
  * 
  * 回调基础类
  * @author widyhu
  *
  */
-class WxPayNotify extends WxPayNotifyReply
+class WxPayNotify extends Data\WxPayNotifyReply
 {
 	/**
 	 * 
@@ -40,7 +40,7 @@ class WxPayNotify extends WxPayNotifyReply
 	 * 2、微信服务器在调用失败或者接到回包为非确认包的时候，会发起重试，需确保你的回调是可以重入
 	 * @param array $data 回调解释出的参数
 	 * @param string $msg 如果回调处理失败，可以将错误信息输出到该方法
-	 * @return true回调出来完成不需要继续回调，false回调处理未完成需要继续回调
+	 * @return boolean true回调出来完成不需要继续回调，false回调处理未完成需要继续回调
 	 */
 	public function NotifyProcess($data, &$msg)
 	{
@@ -52,7 +52,7 @@ class WxPayNotify extends WxPayNotifyReply
 	 * 
 	 * notify回调方法，该方法中需要赋值需要输出的参数,不可重写
 	 * @param array $data
-	 * @return true回调出来完成不需要继续回调，false回调处理未完成需要继续回调
+	 * @return boolean true回调出来完成不需要继续回调，false回调处理未完成需要继续回调
 	 */
 	final public function NotifyCallBack($data)
 	{

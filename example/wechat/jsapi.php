@@ -1,13 +1,11 @@
-<?php 
+<?php
+/**
+ * jsAPI支付事例代码 公众号支付
+ */
+use \Aggregation\Pay\WeChatJsApi;
 ini_set('date.timezone','Asia/Shanghai');
-//error_reporting(E_ERROR);
-require_once "../lib/WxPayApi.php";
-require_once "WxPay.JsApiPay.php";
-require_once 'log.php';
 
-//初始化日志
-$logHandler= new CLogFileHandler("../logs/".date('Y-m-d').'.log');
-$log = Log::Init($logHandler, 15);
+require_once "../../vendor/autoload.php";
 
 //打印输出数组信息
 function printf_info($data)
@@ -16,24 +14,28 @@ function printf_info($data)
         echo "<font color='#00ff55;'>$key</font> : $value <br/>";
     }
 }
+define("APPID","绑定支付的APPID（必须配置，开户邮件中可查看");
+define("MCHID","商户号（必须配置，开户邮件中可查看");
+define("KEY","商户支付密钥，参考开户邮件设置（必须配置，登录商户平台自行设置");
+define("APPSECRET","公众帐号secert（仅JSAPI支付的时候需要配置， 登录公众平台，进入开发者中心可设置");
 
-//①、获取用户openid
-$tools = new JsApiPay();
-$openId = $tools->GetOpenid();
+$tools = new WeChatJsApi();
+$tools->init(array(
+    "app_id"=>APPID,
+    "machine_id"=>MCHID,
+    "pay_key"=>KEY,
+    "app_secret"=>APPSECRET,
+    "notify_url"=>"/example/notify.php",
+));
+$data = array(
+    'body'=>"商品描述",
+    'attach'=>"test1111",
+    'out_trade_no'=>"6666666",
+    'total_fee'=>"1",
+    'goods_tag'=>"WGQQQQ",
+);
+$order = $tools->pay($data);
 
-//②、统一下单
-$input = new WxPayUnifiedOrder();
-$input->SetBody("test");
-$input->SetAttach("test");
-$input->SetOut_trade_no(WxPayConfig::MCHID.date("YmdHis"));
-$input->SetTotal_fee("1");
-$input->SetTime_start(date("YmdHis"));
-$input->SetTime_expire(date("YmdHis", time() + 600));
-$input->SetGoods_tag("test");
-$input->SetNotify_url("http://paysdk.weixin.qq.com/example/notify.php");
-$input->SetTrade_type("JSAPI");
-$input->SetOpenid($openId);
-$order = WxPayApi::unifiedOrder($input);
 echo '<font color="#f00"><b>统一下单支付单信息</b></font><br/>';
 printf_info($order);
 $jsApiParameters = $tools->GetJsApiParameters($order);
@@ -41,7 +43,8 @@ $jsApiParameters = $tools->GetJsApiParameters($order);
 //获取共享收货地址js函数参数
 $editAddress = $tools->GetEditAddressParameters();
 
-//③、在支持成功回调通知中处理成功之后的事宜，见 notify.php
+//3、在支持成功回调通知中处理成功之后的事宜.
+
 /**
  * 注意：
  * 1、当你的回调地址不可访问的时候，回调通知会失败，可以通过查询订单来确认支付是否成功

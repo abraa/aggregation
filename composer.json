@@ -6,11 +6,10 @@
   "type": "library",
   "autoload": {
     "classmap": [
-      "lib/wechat"
-
     ],
     "psr-4": {
-      "pay\\": "src"
+      "Aggregation\\Pay\\": "src",
+      "Lib\\": "lib"
     },
     "files": [
     ]

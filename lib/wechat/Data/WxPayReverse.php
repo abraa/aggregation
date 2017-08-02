@@ -1,6 +1,6 @@
 <?php
 namespace Lib\Wechat\Data;
-use Lib\Wechat;
+use \Lib\Wechat\WxPayDataBase;
 /**
  *
  * 撤销输入对象

@@ -6,7 +6,7 @@
  *
  */
 namespace Lib\Wechat;
-use Lib;
+use \Lib\PayException;
 
 class WxPayException extends PayException{
 	public function errorMessage()

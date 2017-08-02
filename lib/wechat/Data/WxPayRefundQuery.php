@@ -1,6 +1,6 @@
 <?php
 namespace Lib\Wechat\Data;
-use Lib\Wechat;
+use \Lib\Wechat\WxPayDataBase;
 /**
  *
  * 退款查询输入对象

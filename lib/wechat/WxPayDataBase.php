@@ -17,8 +17,7 @@ class WxPayDataBase
 	
 	/**
 	* 设置签名，详见签名生成算法
-	* @param string $value 
-	**/
+     **/
 	public function SetSign()
 	{
 		$sign = $this->MakeSign();
@@ -28,7 +27,7 @@ class WxPayDataBase
 	
 	/**
 	* 获取签名，详见签名生成算法的值
-	* @return 值
+	* @return mixed 值
 	**/
 	public function GetSign()
 	{
@@ -73,6 +72,7 @@ class WxPayDataBase
      * 将xml转为array
      * @param string $xml
      * @throws WxPayException
+     * @return array
      */
 	public function FromXml($xml)
 	{	
@@ -105,7 +105,7 @@ class WxPayDataBase
 	
 	/**
 	 * 生成签名
-	 * @return 签名，本函数不覆盖sign成员变量，如要设置签名需要调用SetSign方法赋值
+	 * @return string 签名，本函数不覆盖sign成员变量，如要设置签名需要调用SetSign方法赋值
 	 */
 	public function MakeSign()
 	{
@@ -113,7 +113,7 @@ class WxPayDataBase
 		ksort($this->values);
 		$string = $this->ToUrlParams();
 		//签名步骤二：在string后加入KEY
-		$string = $string . "&key=".WxPayConfig::KEY;
+		$string = $string . "&key=".WxPayConfig::$pay_key;
 		//签名步骤三：MD5加密
 		$string = md5($string);
 		//签名步骤四：所有字符转为大写

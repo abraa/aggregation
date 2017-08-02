@@ -1,6 +1,6 @@
 <?php
 /**
- * 微信公众号支付(JSAPI)
+ * 微信刷卡支付(Micropay)
  * User: 1002571
  * Date: 2017/7/28
  * Time: 11:00
@@ -10,7 +10,7 @@ use \Aggregation\Pay\Base;
 use \Lib\Wechat;
 
 
-class WeChatJsApi extends  Base\BasePay{
+class WeChatMicropay extends  Base\BasePay{
 
     //=======【基本信息设置】=====================================
     //
@@ -78,7 +78,7 @@ class WeChatJsApi extends  Base\BasePay{
             "pay_key"=>array("type"=>"String","name"=>"支付密钥 PAY_KEY","value"=>""),
             "app_secret"=>array("type"=>"String","name"=>"应用密钥 APP_SECRET","value"=>""),
             "notify_url"=>array('type'=>"String","name"=>"异步通知Url NOTIFY_URL" , "value"=>""),
-            );
+        );
     }
 
     function getCode($data){
@@ -136,7 +136,7 @@ class WeChatJsApi extends  Base\BasePay{
                 $v = urlencode($v);
             }
             if($k != "sign"){
-            $buff .= $k . "=" . $v . "&";
+                $buff .= $k . "=" . $v . "&";
             }
         }
         $buff = trim($buff, "&");
@@ -383,12 +383,12 @@ class WeChatJsApi extends  Base\BasePay{
     public function downloadbill($params)
     {
 
-            $bill_date = $params["bill_date"];
-            $bill_type = $params["bill_type"];
-            $input = new Wechat\Data\WxPayDownloadBill();
-            $input->SetBill_date($bill_date);
-            $input->SetBill_type($bill_type);
-            return Wechat\WxPayApi::downloadBill($input);
+        $bill_date = $params["bill_date"];
+        $bill_type = $params["bill_type"];
+        $input = new Wechat\Data\WxPayDownloadBill();
+        $input->SetBill_date($bill_date);
+        $input->SetBill_type($bill_type);
+        return Wechat\WxPayApi::downloadBill($input);
 
     }
 
@@ -403,18 +403,18 @@ class WeChatJsApi extends  Base\BasePay{
             $transaction_id = $params["transaction_id"];
             $input->SetTransaction_id($transaction_id);
         }else
-        if(isset($params["out_trade_no"]) && $params["out_trade_no"] != ""){
-            $out_trade_no = $params["out_trade_no"];
-            $input->SetOut_trade_no($out_trade_no);
-        }else
-        if(isset($params["out_refund_no"]) && $params["out_refund_no"] != ""){
-            $out_refund_no = $params["out_refund_no"];
-            $input->SetOut_refund_no($out_refund_no);
-        }else
-        if(isset($params["refund_id"]) && $params["refund_id"] != ""){
-            $refund_id = $params["refund_id"];
-            $input->SetRefund_id($refund_id);
-        }
+            if(isset($params["out_trade_no"]) && $params["out_trade_no"] != ""){
+                $out_trade_no = $params["out_trade_no"];
+                $input->SetOut_trade_no($out_trade_no);
+            }else
+                if(isset($params["out_refund_no"]) && $params["out_refund_no"] != ""){
+                    $out_refund_no = $params["out_refund_no"];
+                    $input->SetOut_refund_no($out_refund_no);
+                }else
+                    if(isset($params["refund_id"]) && $params["refund_id"] != ""){
+                        $refund_id = $params["refund_id"];
+                        $input->SetRefund_id($refund_id);
+                    }
         return   Wechat\WxPayApi::refundQuery($input);
     }
 

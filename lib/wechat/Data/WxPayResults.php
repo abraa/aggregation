@@ -6,7 +6,8 @@
  *
  */
 namespace Lib\Wechat\Data;
-use Lib\Wechat;
+use \Lib\Wechat\WxPayDataBase;
+use \Lib\Wechat\WxPayException;
 
 class WxPayResults extends WxPayDataBase
 {
@@ -42,7 +43,8 @@ class WxPayResults extends WxPayDataBase
      *
      * 使用数组初始化对象
      * @param array $array
-     * @param 是否检测签名 $noCheckSign
+     * @param 是否检测签名 boolean $noCheckSign
+     * @return self
      */
     public static function InitFromArray($array, $noCheckSign = false)
     {
@@ -68,7 +70,7 @@ class WxPayResults extends WxPayDataBase
     /**
      * 将xml转为array
      * @param string $xml
-     * @throws WxPayException
+     * @return array
      */
     public static function Init($xml)
     {

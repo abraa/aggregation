@@ -12,9 +12,9 @@ abstract class BasePay{
     protected $config = array() ;
     /**
      * 初始化对象
-     * @param Mixed
+     * @param array
      */
-    abstract function init();
+    abstract function init($config);
     /**
      * 初始化对象所需参数数组
      * @return Array
@@ -22,17 +22,50 @@ abstract class BasePay{
     abstract function setup();
     /**
      * 获取可用于支付的htmlcode如果有的话
+     * @param array
      * @return String
      * */
-    abstract public function getCode();
+    abstract public function getCode($data);
     /**
-     *  验证支付网站返回通知
+     *  直接调用api支付
+     * @param array
+     */
+    abstract public function pay($data);
+    /**
+     *  查询订单
+     * @params array
+     * @return array 查询结果
+     */
+    abstract public function queryOrder($params);
+    /**
+     *  交易退款
+     * @params array
+     * @return array 查询结果
+     */
+    abstract public function refund($params);
+    /**
+     *  下载账单
+     * @params array
+     * @return array 查询结果
+     */
+    abstract public function downloadbill($params);
+
+    /**
+     *  输出到支付网站通知处理结果
      */
     abstract public function notify();
     /**
-     * 拼接用于传递的参数(格式化参数)
+     *  验证签名
+     * @return boolean
      */
-    abstract protected  function formatParaMap();
+    abstract public function verify();
+    /**
+     * 拼接用于传递的参数(格式化参数)
+     * @param $paraMap Array
+     * @param $urlencode Boolean
+     * @return string
+     */
+    abstract protected  function formatParaMap($paraMap, $urlencode);
 
 
     /**

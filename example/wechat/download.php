@@ -6,7 +6,7 @@ require_once "../lib/WxPayApi.php";
 if(isset($_REQUEST["bill_date"]) && $_REQUEST["bill_date"] != ""){
 	$bill_date = $_REQUEST["bill_date"];
     $bill_type = $_REQUEST["bill_type"];
-	$input = new WxPayDownloadBill();
+	$input = new Wechat\Data\WxPayDownloadBill();
 	$input->SetBill_date($bill_date);
 	$input->SetBill_type($bill_type);
 	$file = WxPayApi::downloadBill($input);
