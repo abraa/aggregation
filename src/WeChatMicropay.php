@@ -81,6 +81,11 @@ class WeChatMicropay extends  Base\BasePay{
         );
     }
 
+    /**
+     * 获取支付代码
+     * @param $data
+     * @return string
+     */
     function getCode($data){
         return "";
     }
@@ -143,194 +148,89 @@ class WeChatMicropay extends  Base\BasePay{
         return $buff;
     }
 
-    /**
-     *
-     * 通过跳转获取用户的openid，跳转流程如下：
-     * 1、设置自己需要调回的url及其其他参数，跳转到微信服务器https://open.weixin.qq.com/connect/oauth2/authorize
-     * 2、微信服务处理完成之后会跳转回用户redirect_uri地址，此时会带上一些参数，如：code
-     *
-     * @return 用户的openid
-     */
-    public function GetOpenid()
-    {
-        //通过code获得openid
-        if (!isset($_GET['code'])){
-            //触发微信返回code码
-            $baseUrl = urlencode('http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].$_SERVER['QUERY_STRING']);
-            $url = $this->__CreateOauthUrlForCode($baseUrl);
-            Header("Location: $url");
-            exit();
-        } else {
-            //获取code码，以获取openid
-            $code = $_GET['code'];
-            $openid = $this->getOpenidFromMp($code);
-            return $openid;
-        }
-    }
-    /**
-     *
-     * 构造获取code的url连接
-     * @param string $redirectUrl 微信服务器回跳的url，需要url编码
-     *
-     * @return 返回构造好的url
-     */
-    private function __CreateOauthUrlForCode($redirectUrl)
-    {
-        $urlObj["appid"] = $this->config['app_id'];
-        $urlObj["redirect_uri"] = "$redirectUrl";
-        $urlObj["response_type"] = "code";
-        $urlObj["scope"] = "snsapi_base";
-        $urlObj["state"] = "STATE"."#wechat_redirect";
-        $bizString = $this->ToUrlParams($urlObj);
-        return "https://open.weixin.qq.com/connect/oauth2/authorize?".$bizString;
-    }
-    /**
-     *
-     * 构造获取open和access_toke的url地址
-     * @param string $code，微信跳转带回的code
-     *
-     * @return 请求的url
-     */
-    private function __CreateOauthUrlForOpenid($code)
-    {
-        $urlObj["appid"] = $this->config['app_id'];
-        $urlObj["secret"] = $this->config['app_secret'];
-        $urlObj["code"] = $code;
-        $urlObj["grant_type"] = "authorization_code";
-        $bizString = $this->ToUrlParams($urlObj);
-        return "https://api.weixin.qq.com/sns/oauth2/access_token?".$bizString;
-    }
-    /**
-     *
-     * 获取jsapi支付的参数
-     * @param array $UnifiedOrderResult 统一支付接口返回的数据
-     * @throws Wechat\WxPayException
-     *
-     * @return json 数据，可直接填入js函数作为参数
-     */
-    public function GetJsApiParameters($UnifiedOrderResult)
-    {
-        if(!array_key_exists("appid", $UnifiedOrderResult)
-            || !array_key_exists("prepay_id", $UnifiedOrderResult)
-            || $UnifiedOrderResult['prepay_id'] == "")
-        {
-            throw new Wechat\WxPayException("参数错误");
-        }
-        $jsapi = new Wechat\Data\WxPayJsApiPay();
-        $jsapi->SetAppid($UnifiedOrderResult["appid"]);
-        $timeStamp = time();
-        $jsapi->SetTimeStamp("$timeStamp");
-        $jsapi->SetNonceStr(Wechat\WxPayApi::getNonceStr());
-        $jsapi->SetPackage("prepay_id=" . $UnifiedOrderResult['prepay_id']);
-        $jsapi->SetSignType("MD5");
-        $jsapi->SetPaySign($jsapi->MakeSign());
-        $parameters = json_encode($jsapi->GetValues());
-        return $parameters;
-    }
-
-    /**
-     *
-     * 通过code从工作平台获取openid
-     * @param string $code 微信跳转回来带上的code
-     *
-     * @return openid
-     */
-    public function GetOpenidFromMp($code)
-    {
-        $url = $this->__CreateOauthUrlForOpenid($code);
-        //初始化curl
-        $ch = curl_init();
-        //设置超时
-        curl_setopt($ch, CURLOPT_TIMEOUT,10);
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER,FALSE);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST,FALSE);
-        curl_setopt($ch, CURLOPT_HEADER, FALSE);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-        if(Wechat\WxPayConfig::CURL_PROXY_HOST != "0.0.0.0"
-            && Wechat\WxPayConfig::CURL_PROXY_PORT != 0){
-            curl_setopt($ch,CURLOPT_PROXY, Wechat\WxPayConfig::CURL_PROXY_HOST);
-            curl_setopt($ch,CURLOPT_PROXYPORT, Wechat\WxPayConfig::CURL_PROXY_PORT);
-        }
-        //运行curl，结果以jason形式返回
-        $res = curl_exec($ch);
-        curl_close($ch);
-        //取出openid
-        $data = json_decode($res,true);
-        $this->data = $data;
-        $openid = $data['openid'];
-        return $openid;
-    }
-
-    /**
-     *
-     * 拼接签名字符串
-     * @param array $urlObj
-     *
-     * @return string  返回已经拼接好的字符串
-     */
-    private function ToUrlParams($urlObj)
-    {
-        return $this->formatParaMap($urlObj);
-    }
-
-    /**
-     *
-     * 获取地址js参数
-     *
-     * @return json 获取共享收货地址js函数需要的参数，json格式可以直接做参数使用
-     */
-    public function GetEditAddressParameters()
-    {
-        $getData = $this->data;
-        $data = array();
-        $data["appid"] = $this->config['app_id'];
-        $data["url"] = "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
-        $time = time();
-        $data["timestamp"] = "$time";
-        $data["noncestr"] = "1234568";
-        $data["accesstoken"] = $getData["access_token"];
-        ksort($data);
-        $params = $this->ToUrlParams($data);
-        $addrSign = sha1($params);
-
-        $afterData = array(
-            "addrSign" => $addrSign,
-            "signType" => "sha1",
-            "scope" => "jsapi_address",
-            "appId" => $this->config['app_id'],
-            "timeStamp" => $data["timestamp"],
-            "nonceStr" => $data["noncestr"]
-        );
-        $parameters = json_encode($afterData);
-        return $parameters;
-    }
 
     /**
      *  直接调用api支付
-     * @param array 参数参照微信统一下单接口
-     * @return array
+     * @param $data
+     * @return bool
+     * @throws Wechat\WxPayException
+     * @internal param 参数参照微信统一下单接口 $array
      */
     public function pay($data)
     {
-        //1. 获取openid
-        $openId = $this->GetOpenid();
-        //2.统一下单
-        $input = new Wechat\Data\WxPayUnifiedOrder();
+        //1.设置参数
+        $input = new Wechat\Data\WxPayMicroPay();
+        $input->SetAuth_code($data["auth_code"]); //授权码
         $input->SetBody($data['body']);         //商品描述
         $input->SetAttach($data['attach']);         //附加数据 原样返回
         $input->SetOut_trade_no($data['out_trade_no']); //商户订单号
         if($data['fee_type']){$input->SetFee_type($data['fee_type']);}      //标价币种 默认人民币：CNY
-
         $input->SetTotal_fee($data['total_fee']);   //标价金额 单位分
-        $input->SetTime_start(date("YmdHis"));  //订单生成时间，格式为yyyyMMddHHmmss
-        $input->SetTime_expire(date("YmdHis", time() + 600));   //订单失效时间，格式为yyyyMMddHHmmss
-        if($data['goods_tag']) {$input->SetGoods_tag($data['goods_tag']);}           //订单优惠标记
-        $input->SetNotify_url($this->config['notify_url']);
-        $input->SetTrade_type("JSAPI");       //JSAPI支付
-        $input->SetOpenid($openId);
-        $order = Wechat\WxPayApi::unifiedOrder($input);
-        return $order;
+        //2.提交被扫参数
+        $result = Wechat\WxPayApi::micropay($input, 5);
+        //如果返回成功
+        if(!array_key_exists("return_code", $result)
+            || !array_key_exists("out_trade_no", $result)
+            || !array_key_exists("result_code", $result))
+        {
+            throw new Wechat\WxPayException("接口调用失败！");
+        }
+        //签名验证
+        $out_trade_no = $input->GetOut_trade_no();
+        //3、接口调用成功，明确返回调用失败
+        if($result["return_code"] == "SUCCESS" &&
+            $result["result_code"] == "FAIL" &&
+            $result["err_code"] != "USERPAYING" &&
+            $result["err_code"] != "SYSTEMERROR")
+        {
+            return false;
+        }
+        //4、确认支付是否成功
+        $queryTimes = 10;
+        while($queryTimes > 0)
+        {
+            $succResult = 0;
+            $queryResult = $this->queryOrder($out_trade_no);
+//            if($queryResult["return_code"] == "SUCCESS"
+//                && $queryResult["result_code"] == "SUCCESS")
+//            {
+//                //支付成功
+//                if($queryResult["trade_state"] == "SUCCESS"){
+//                    $succResult = 1;
+//
+//                }
+//                //用户支付中
+//                else if($result["trade_state"] == "USERPAYING"){
+//                    $succResult = 2;
+//
+//                }
+//            }
+//            //如果返回错误码为“此交易订单号不存在”则直接认定失败
+//            if($result["err_code"] == "ORDERNOTEXIST")
+//            {
+//                $succResult = 0;
+//            } else{
+//                //如果是系统错误，则后续继续
+//                $succResult = 2;
+//            }
+//
+//            //如果需要等待1s后继续
+//            if($succResult == 2){
+//                sleep(2);
+//                continue;
+//            } else if($succResult == 1){//查询成功
+//                return $queryResult;
+//            } else {//订单交易失败
+//                return false;
+//            }
+        }
+
+        //5、次确认失败，则撤销订单
+        if(!$this->cancel($out_trade_no))
+        {
+            throw new Wechat\WxpayException("撤销单失败！");
+        }
+        return false;
     }
 
 

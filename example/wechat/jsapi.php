@@ -14,10 +14,15 @@ function printf_info($data)
         echo "<font color='#00ff55;'>$key</font> : $value <br/>";
     }
 }
-define("APPID","绑定支付的APPID（必须配置，开户邮件中可查看");
-define("MCHID","商户号（必须配置，开户邮件中可查看");
-define("KEY","商户支付密钥，参考开户邮件设置（必须配置，登录商户平台自行设置");
-define("APPSECRET","公众帐号secert（仅JSAPI支付的时候需要配置， 登录公众平台，进入开发者中心可设置");
+
+//define("APPID","绑定支付的APPID（必须配置，开户邮件中可查看");
+//define("MCHID","商户号（必须配置，开户邮件中可查看");
+//define("KEY","商户支付密钥，参考开户邮件设置（必须配置，登录商户平台自行设置");
+//define("APPSECRET","公众帐号secert（仅JSAPI支付的时候需要配置， 登录公众平台，进入开发者中心可设置");
+define("APPID","wx426b3015555a46be");
+define("MCHID","1900009851");
+define("KEY","8934e7d15453e97507ef794cf7b0519d");
+define("APPSECRET","7813490da6f1265e4901ffb80afaa36f");
 
 $tools = new WeChatJsApi();
 $tools->init(array(

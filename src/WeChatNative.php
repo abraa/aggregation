@@ -81,8 +81,38 @@ class WeChatNative extends  Base\BasePay{
         );
     }
 
+    /**
+     * 返回支付表单代码(url需要生成二维码)
+     * @param $data (需要却没有set的自己加上去)
+     * @return string
+     */
     function getCode($data){
-        return "";
+
+        //模式1.生成扫描支付URL(需要切换解开注释)
+//      $url = $this->GetPrePayUrl($data['product_id']);
+//        //转换短链接
+//        $input = new Wechat\Data\WxPayShortUrl();
+//        $input->SetLong_url($url);
+//        $result = Wechat\WxPayApi::shorturl($input);
+//        if($result['short_url']){
+//            $url = $result['short_url'];
+//        }
+        //模式2.统一下单
+        $input = new Wechat\Data\WxPayUnifiedOrder();
+        $input->SetBody($data['body']);         //商品描述
+        $input->SetAttach($data['attach']);         //附加数据 原样返回
+        $input->SetOut_trade_no($data['out_trade_no']); //商户订单号
+        if($data['fee_type']){$input->SetFee_type($data['fee_type']);}      //标价币种 默认人民币：CNY
+        $input->SetTotal_fee($data['total_fee']);   //标价金额 单位分
+        $input->SetTime_start(date("YmdHis"));  //订单生成时间，格式为yyyyMMddHHmmss
+        $input->SetTime_expire(date("YmdHis", time() + 600));   //订单失效时间，格式为yyyyMMddHHmmss
+        if($data['goods_tag']) {$input->SetGoods_tag($data['goods_tag']);}           //订单优惠标记
+        $input->SetNotify_url($this->config['notify_url']);
+        $input->SetTrade_type("NATIVE");       //扫码支付
+        $input->SetProduct_id($data['product_id']);
+        $result = $this->GetPayUrl($input);
+        $url = $result["code_url"];  //支付链接 (请将链接生成二维码)
+        return $url;
     }
 
     /**
@@ -107,6 +137,7 @@ class WeChatNative extends  Base\BasePay{
         {
             $WxPayNotifyReply->SetSign();
         }
+        //输出回wechat
         Wechat\WxpayApi::replyNotify($WxPayNotifyReply->ToXml());
     }
 
@@ -117,6 +148,17 @@ class WeChatNative extends  Base\BasePay{
     public function verify()
     {
         $result = Wechat\WxPayApi::notify($msg);
+        //查询订单 如果需要查询建议在外面查询顺便判断是否和数据库一致
+//       $query_result =  $this->queryOrder($result);
+//        if(array_key_exists("return_code", $query_result)
+//            && array_key_exists("result_code", $query_result)
+//            && $query_result["return_code"] == "SUCCESS"
+//            && $query_result["result_code"] == "SUCCESS")
+//        {
+//            return $result;
+//        }else{
+//            return false;
+//        }
         return $result;
     }
 
@@ -145,125 +187,6 @@ class WeChatNative extends  Base\BasePay{
 
     /**
      *
-     * 通过跳转获取用户的openid，跳转流程如下：
-     * 1、设置自己需要调回的url及其其他参数，跳转到微信服务器https://open.weixin.qq.com/connect/oauth2/authorize
-     * 2、微信服务处理完成之后会跳转回用户redirect_uri地址，此时会带上一些参数，如：code
-     *
-     * @return 用户的openid
-     */
-    public function GetOpenid()
-    {
-        //通过code获得openid
-        if (!isset($_GET['code'])){
-            //触发微信返回code码
-            $baseUrl = urlencode('http://'.$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].$_SERVER['QUERY_STRING']);
-            $url = $this->__CreateOauthUrlForCode($baseUrl);
-            Header("Location: $url");
-            exit();
-        } else {
-            //获取code码，以获取openid
-            $code = $_GET['code'];
-            $openid = $this->getOpenidFromMp($code);
-            return $openid;
-        }
-    }
-    /**
-     *
-     * 构造获取code的url连接
-     * @param string $redirectUrl 微信服务器回跳的url，需要url编码
-     *
-     * @return 返回构造好的url
-     */
-    private function __CreateOauthUrlForCode($redirectUrl)
-    {
-        $urlObj["appid"] = $this->config['app_id'];
-        $urlObj["redirect_uri"] = "$redirectUrl";
-        $urlObj["response_type"] = "code";
-        $urlObj["scope"] = "snsapi_base";
-        $urlObj["state"] = "STATE"."#wechat_redirect";
-        $bizString = $this->ToUrlParams($urlObj);
-        return "https://open.weixin.qq.com/connect/oauth2/authorize?".$bizString;
-    }
-    /**
-     *
-     * 构造获取open和access_toke的url地址
-     * @param string $code，微信跳转带回的code
-     *
-     * @return 请求的url
-     */
-    private function __CreateOauthUrlForOpenid($code)
-    {
-        $urlObj["appid"] = $this->config['app_id'];
-        $urlObj["secret"] = $this->config['app_secret'];
-        $urlObj["code"] = $code;
-        $urlObj["grant_type"] = "authorization_code";
-        $bizString = $this->ToUrlParams($urlObj);
-        return "https://api.weixin.qq.com/sns/oauth2/access_token?".$bizString;
-    }
-    /**
-     *
-     * 获取jsapi支付的参数
-     * @param array $UnifiedOrderResult 统一支付接口返回的数据
-     * @throws Wechat\WxPayException
-     *
-     * @return json 数据，可直接填入js函数作为参数
-     */
-    public function GetJsApiParameters($UnifiedOrderResult)
-    {
-        if(!array_key_exists("appid", $UnifiedOrderResult)
-            || !array_key_exists("prepay_id", $UnifiedOrderResult)
-            || $UnifiedOrderResult['prepay_id'] == "")
-        {
-            throw new Wechat\WxPayException("参数错误");
-        }
-        $jsapi = new Wechat\Data\WxPayJsApiPay();
-        $jsapi->SetAppid($UnifiedOrderResult["appid"]);
-        $timeStamp = time();
-        $jsapi->SetTimeStamp("$timeStamp");
-        $jsapi->SetNonceStr(Wechat\WxPayApi::getNonceStr());
-        $jsapi->SetPackage("prepay_id=" . $UnifiedOrderResult['prepay_id']);
-        $jsapi->SetSignType("MD5");
-        $jsapi->SetPaySign($jsapi->MakeSign());
-        $parameters = json_encode($jsapi->GetValues());
-        return $parameters;
-    }
-
-    /**
-     *
-     * 通过code从工作平台获取openid
-     * @param string $code 微信跳转回来带上的code
-     *
-     * @return openid
-     */
-    public function GetOpenidFromMp($code)
-    {
-        $url = $this->__CreateOauthUrlForOpenid($code);
-        //初始化curl
-        $ch = curl_init();
-        //设置超时
-        curl_setopt($ch, CURLOPT_TIMEOUT,10);
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER,FALSE);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST,FALSE);
-        curl_setopt($ch, CURLOPT_HEADER, FALSE);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-        if(Wechat\WxPayConfig::CURL_PROXY_HOST != "0.0.0.0"
-            && Wechat\WxPayConfig::CURL_PROXY_PORT != 0){
-            curl_setopt($ch,CURLOPT_PROXY, Wechat\WxPayConfig::CURL_PROXY_HOST);
-            curl_setopt($ch,CURLOPT_PROXYPORT, Wechat\WxPayConfig::CURL_PROXY_PORT);
-        }
-        //运行curl，结果以jason形式返回
-        $res = curl_exec($ch);
-        curl_close($ch);
-        //取出openid
-        $data = json_decode($res,true);
-        $this->data = $data;
-        $openid = $data['openid'];
-        return $openid;
-    }
-
-    /**
-     *
      * 拼接签名字符串
      * @param array $urlObj
      *
@@ -275,62 +198,109 @@ class WeChatNative extends  Base\BasePay{
     }
 
     /**
-     *
-     * 获取地址js参数
-     *
-     * @return json 获取共享收货地址js函数需要的参数，json格式可以直接做参数使用
+     *   生成扫描支付URL,模式一
+     * * 流程：
+     * 1、组装包含支付信息的url，生成二维码
+     * 2、用户扫描二维码，进行支付
+     * 3、确定支付之后，微信服务器会回调预先配置的回调地址，在【微信开放平台-微信支付-支付配置】中进行配置
+     * 4、在接到回调通知之后，用户进行统一下单支付，并返回支付信息以完成支付（见：native_notify.php）
+     * 5、支付完成之后，微信服务器会通知支付成功
+     * 6、在支付成功通知中需要查单确认是否真正支付成功（见：notify.php）
+     * @param $productId
+     * @return string
+     * @internal param Wechat\Data\WxPayBizPayUrl $bizUrlInfo
      */
-    public function GetEditAddressParameters()
+    public function GetPrePayUrl($productId)
     {
-        $getData = $this->data;
-        $data = array();
-        $data["appid"] = $this->config['app_id'];
-        $data["url"] = "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
-        $time = time();
-        $data["timestamp"] = "$time";
-        $data["noncestr"] = "1234568";
-        $data["accesstoken"] = $getData["access_token"];
-        ksort($data);
-        $params = $this->ToUrlParams($data);
-        $addrSign = sha1($params);
-
-        $afterData = array(
-            "addrSign" => $addrSign,
-            "signType" => "sha1",
-            "scope" => "jsapi_address",
-            "appId" => $this->config['app_id'],
-            "timeStamp" => $data["timestamp"],
-            "nonceStr" => $data["noncestr"]
-        );
-        $parameters = json_encode($afterData);
-        return $parameters;
+        $biz = new Wechat\Data\WxPayBizPayUrl();
+        $biz->SetProduct_id($productId);
+        $values = Wechat\WxpayApi::bizpayurl($biz);
+        $url = "weixin://wxpay/bizpayurl?" . $this->ToUrlParams($values);
+        return $url;
     }
 
     /**
-     *  直接调用api支付
-     * @param array 参数参照微信统一下单接口
+     *
+     * 生成直接支付url，支付url有效期为2小时,模式二
+     *  * 流程：
+     * 1、调用统一下单，取得code_url，生成二维码
+     * 2、用户扫描二维码，进行支付
+     * 3、支付完成之后，微信服务器会通知支付成功
+     * 4、在支付成功通知中需要查单确认是否真正支付成功（见：notify.php）
+     * @param Wechat\Data\UnifiedOrderInput $input
      * @return array
+     */
+    public function GetPayUrl($input)
+    {
+        if($input->GetTrade_type() == "NATIVE")
+        {
+            $result = Wechat\WxPayApi::unifiedOrder($input);
+            return $result;
+        }
+    }
+
+    /**
+     *  模式1 确定支付之后，微信服务器会回调预先配置的回调地址，在【微信开放平台-微信支付-支付配置】中进行配置
+     * @param boolean  $needSign 微信返回数据
+     * @return mixed
+     */
+    public function nativeNotify($needSign = true){
+        $msg = "OK";
+        $WxPayNotifyReply = new Wechat\Data\WxPayNotifyReply();
+        $data = Wechat\WxPayApi::notify($msg);
+        //验签
+        if($data == false){
+            $WxPayNotifyReply->SetReturn_code("FAIL");
+            $WxPayNotifyReply->SetReturn_msg($msg);
+        } else {
+
+            if(!array_key_exists("openid", $data) ||
+                !array_key_exists("product_id", $data))
+            {
+//            $msg = "回调数据异常";
+                return false;
+            }
+            //统一下单
+            $input = new Wechat\Data\WxPayUnifiedOrder();
+            $input->SetBody($data['body']);         //商品描述
+            $input->SetAttach($data['attach']);         //附加数据 原样返回
+            $input->SetOut_trade_no($data['out_trade_no']); //商户订单号
+            if($data['fee_type']){$input->SetFee_type($data['fee_type']);}      //标价币种 默认人民币：CNY
+            $input->SetTotal_fee($data['total_fee']);   //标价金额 单位分
+            $input->SetTime_start(date("YmdHis"));  //订单生成时间，格式为yyyyMMddHHmmss
+            $input->SetTime_expire(date("YmdHis", time() + 600));   //订单失效时间，格式为yyyyMMddHHmmss
+            if($data['goods_tag']) {$input->SetGoods_tag($data['goods_tag']);}           //订单优惠标记
+            $input->SetNotify_url($this->config['notify_url']);
+            $input->SetTrade_type("NATIVE");       //扫码支付
+            $input->SetOpenid($data["openid"]);
+            $input->SetProduct_id($data["product_id"]);
+            $result = Wechat\WxPayApi::unifiedOrder($input);
+            if(!array_key_exists("appid", $result) ||
+                !array_key_exists("mch_id", $result) ||
+                !array_key_exists("prepay_id", $result))
+            {
+//            $msg = "统一下单失败";
+                return false;
+            }
+            $WxPayNotifyReply->SetReturn_code("SUCCESS");
+            $WxPayNotifyReply->SetReturn_msg("OK");
+        }
+        //如果需要签名
+        if($needSign == true &&
+            $WxPayNotifyReply->GetReturn_code() == "SUCCESS")
+        {
+            $WxPayNotifyReply->SetSign();
+        }
+        Wechat\WxpayApi::replyNotify($WxPayNotifyReply->ToXml());
+
+    }
+    /**
+     *  直接调用api支付
+     * @param array 直接生成支付
      */
     public function pay($data)
     {
-        //1. 获取openid
-        $openId = $this->GetOpenid();
-        //2.统一下单
-        $input = new Wechat\Data\WxPayUnifiedOrder();
-        $input->SetBody($data['body']);         //商品描述
-        $input->SetAttach($data['attach']);         //附加数据 原样返回
-        $input->SetOut_trade_no($data['out_trade_no']); //商户订单号
-        if($data['fee_type']){$input->SetFee_type($data['fee_type']);}      //标价币种 默认人民币：CNY
 
-        $input->SetTotal_fee($data['total_fee']);   //标价金额 单位分
-        $input->SetTime_start(date("YmdHis"));  //订单生成时间，格式为yyyyMMddHHmmss
-        $input->SetTime_expire(date("YmdHis", time() + 600));   //订单失效时间，格式为yyyyMMddHHmmss
-        if($data['goods_tag']) {$input->SetGoods_tag($data['goods_tag']);}           //订单优惠标记
-        $input->SetNotify_url($this->config['notify_url']);
-        $input->SetTrade_type("JSAPI");       //JSAPI支付
-        $input->SetOpenid($openId);
-        $order = Wechat\WxPayApi::unifiedOrder($input);
-        return $order;
     }
 
 
@@ -342,7 +312,7 @@ class WeChatNative extends  Base\BasePay{
      */
     public function queryOrder($params)
     {
-        $input = new \Lib\Wechat\Data\WxPayOrderQuery();
+        $input = new Wechat\Data\WxPayOrderQuery();
         if(isset($params["transaction_id"]) && $params["transaction_id"] != ""){
             $input->SetTransaction_id($params['transaction_id']);
         }elseif(isset($params["out_trade_no"]) && $params["out_trade_no"] != ""){
