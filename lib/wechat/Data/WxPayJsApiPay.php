@@ -1,6 +1,6 @@
 <?php
-namespace Lib\Wechat\Data;
-use \Lib\Wechat\WxPayDataBase;
+namespace aggregation\lib\wechat\Data;
+use \aggregation\lib\wechat\WxPayDataBase;
 /**
  *
  * 提交JSAPI输入对象

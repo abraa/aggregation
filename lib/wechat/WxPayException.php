@@ -5,8 +5,8 @@
  * @author widyhu
  *
  */
-namespace Lib\Wechat;
-use \Lib\PayException;
+namespace aggregation\lib\wechat;
+use \aggregation\lib\PayException;
 
 class WxPayException extends PayException{
 	public function errorMessage()

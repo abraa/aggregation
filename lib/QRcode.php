@@ -1,5 +1,5 @@
 <?php
-namespace Lib;
+namespace aggregation\lib;
 use \Exception;
 /*
  * PHP QR Code encoder

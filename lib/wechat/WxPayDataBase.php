@@ -2,7 +2,7 @@
 /**
 * 2015-06-29 修复签名问题
 **/
-namespace Lib\Wechat;
+namespace aggregation\lib\wechat;
 
 /**
  *  实现类在Data中

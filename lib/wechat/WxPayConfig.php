@@ -1,5 +1,5 @@
 <?php
-namespace Lib\Wechat;
+namespace aggregation\lib\wechat;
 
 /**
  *  实现类在Data中

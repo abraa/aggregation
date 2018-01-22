@@ -5,8 +5,8 @@
  * @author widyhu
  *
  */
-namespace Lib\Wechat\Data;
-use \Lib\Wechat\WxPayDataBase;
+namespace aggregation\lib\wechat\Data;
+use \aggregation\lib\wechat\WxPayDataBase;
 
 class WxPayUnifiedOrder extends WxPayDataBase
 {

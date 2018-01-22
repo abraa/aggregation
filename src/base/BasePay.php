@@ -5,7 +5,7 @@
  * Date: 2017/7/28
  * Time: 11:35
  */
-namespace Aggregation\Pay\Base;
+namespace aggregation\pay\base;
 
 abstract class BasePay{
     /** @var array 配置参数数组 */

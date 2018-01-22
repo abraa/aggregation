@@ -5,9 +5,9 @@
  * Date: 2017/7/28
  * Time: 11:00
  */
-namespace Aggregation\Pay;
-use \Aggregation\Pay\Base;
-use \Lib\Wechat;
+namespace aggregation\pay;
+use \aggregation\pay\base;
+use \aggregation\lib\wechat;
 
 
 class WeChatJsApi extends  Base\BasePay{
@@ -62,7 +62,7 @@ class WeChatJsApi extends  Base\BasePay{
     function init($config){
         $this->config = array_merge($this->config,$config);
         foreach($this->config as $key =>$value){
-            Wechat\WxPayConfig::$$key = $value;
+            wechat\WxPayConfig::$$key = $value;
         }
     }
 
@@ -73,11 +73,11 @@ class WeChatJsApi extends  Base\BasePay{
      */
     function setup(){
         return array(
-            "app_id"=>array("type"=>"String","name"=>"应用ID APP_ID","value"=>""),
-            "machine_id"=>array("type"=>"String","name"=>"商户号 MACHINE_ID","value"=>""),
-            "pay_key"=>array("type"=>"String","name"=>"支付密钥 PAY_KEY","value"=>""),
-            "app_secret"=>array("type"=>"String","name"=>"应用密钥 APP_SECRET","value"=>""),
-            "notify_url"=>array('type'=>"String","name"=>"异步通知Url NOTIFY_URL" , "value"=>""),
+            "app_id"=>array("type"=>"text","name"=>"应用ID APP_ID","value"=>""),
+            "machine_id"=>array("type"=>"text","name"=>"商户号 MACHINE_ID","value"=>""),
+            "pay_key"=>array("type"=>"text","name"=>"支付密钥 PAY_KEY","value"=>""),
+            "app_secret"=>array("type"=>"text","name"=>"应用密钥 APP_SECRET","value"=>""),
+            "notify_url"=>array('type'=>"text","name"=>"异步通知Url NOTIFY_URL" , "value"=>""),
             );
     }
 
@@ -91,8 +91,8 @@ class WeChatJsApi extends  Base\BasePay{
      */
     function notify($needSign = false){
         $msg = "OK";
-        $WxPayNotifyReply = new \Lib\Wechat\Data\WxPayNotifyReply();
-        $result = Wechat\WxPayApi::notify($msg);
+        $WxPayNotifyReply = new \aggregation\lib\wechat\Data\WxPayNotifyReply();
+        $result = wechat\WxPayApi::notify($msg);
         //验签
         if($result == false){
             $WxPayNotifyReply->SetReturn_code("FAIL");
@@ -107,7 +107,7 @@ class WeChatJsApi extends  Base\BasePay{
         {
             $WxPayNotifyReply->SetSign();
         }
-        Wechat\WxpayApi::replyNotify($WxPayNotifyReply->ToXml());
+        wechat\WxpayApi::replyNotify($WxPayNotifyReply->ToXml());
     }
 
     /**
@@ -116,7 +116,7 @@ class WeChatJsApi extends  Base\BasePay{
      */
     public function verify()
     {
-        $result = Wechat\WxPayApi::notify($msg);
+        $result = wechat\WxPayApi::notify($msg);
         return $result;
     }
 
@@ -204,7 +204,7 @@ class WeChatJsApi extends  Base\BasePay{
      *
      * 获取jsapi支付的参数
      * @param array $UnifiedOrderResult 统一支付接口返回的数据
-     * @throws Wechat\WxPayException
+     * @throws wechat\WxPayException
      *
      * @return json 数据，可直接填入js函数作为参数
      */
@@ -214,13 +214,13 @@ class WeChatJsApi extends  Base\BasePay{
             || !array_key_exists("prepay_id", $UnifiedOrderResult)
             || $UnifiedOrderResult['prepay_id'] == "")
         {
-            throw new Wechat\WxPayException("参数错误");
+            throw new wechat\WxPayException("参数错误");
         }
-        $jsapi = new Wechat\Data\WxPayJsApiPay();
+        $jsapi = new wechat\Data\WxPayJsApiPay();
         $jsapi->SetAppid($UnifiedOrderResult["appid"]);
         $timeStamp = time();
         $jsapi->SetTimeStamp("$timeStamp");
-        $jsapi->SetNonceStr(Wechat\WxPayApi::getNonceStr());
+        $jsapi->SetNonceStr(wechat\WxPayApi::getNonceStr());
         $jsapi->SetPackage("prepay_id=" . $UnifiedOrderResult['prepay_id']);
         $jsapi->SetSignType("MD5");
         $jsapi->SetPaySign($jsapi->MakeSign());
@@ -247,10 +247,10 @@ class WeChatJsApi extends  Base\BasePay{
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST,FALSE);
         curl_setopt($ch, CURLOPT_HEADER, FALSE);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-        if(Wechat\WxPayConfig::CURL_PROXY_HOST != "0.0.0.0"
-            && Wechat\WxPayConfig::CURL_PROXY_PORT != 0){
-            curl_setopt($ch,CURLOPT_PROXY, Wechat\WxPayConfig::CURL_PROXY_HOST);
-            curl_setopt($ch,CURLOPT_PROXYPORT, Wechat\WxPayConfig::CURL_PROXY_PORT);
+        if(wechat\WxPayConfig::CURL_PROXY_HOST != "0.0.0.0"
+            && wechat\WxPayConfig::CURL_PROXY_PORT != 0){
+            curl_setopt($ch,CURLOPT_PROXY, wechat\WxPayConfig::CURL_PROXY_HOST);
+            curl_setopt($ch,CURLOPT_PROXYPORT, wechat\WxPayConfig::CURL_PROXY_PORT);
         }
         //运行curl，结果以jason形式返回
         $res = curl_exec($ch);
@@ -316,7 +316,7 @@ class WeChatJsApi extends  Base\BasePay{
         //1. 获取openid
         $openId = $this->GetOpenid();
         //2.统一下单
-        $input = new Wechat\Data\WxPayUnifiedOrder();
+        $input = new wechat\Data\WxPayUnifiedOrder();
         $input->SetBody($data['body']);         //商品描述
         $input->SetAttach($data['attach']);         //附加数据 原样返回
         $input->SetOut_trade_no($data['out_trade_no']); //商户订单号
@@ -329,7 +329,7 @@ class WeChatJsApi extends  Base\BasePay{
         $input->SetNotify_url($this->config['notify_url']);
         $input->SetTrade_type("JSAPI");       //JSAPI支付
         $input->SetOpenid($openId);
-        $order = Wechat\WxPayApi::unifiedOrder($input);
+        $order = wechat\WxPayApi::unifiedOrder($input);
         return $order;
     }
 
@@ -337,29 +337,31 @@ class WeChatJsApi extends  Base\BasePay{
     /**
      *  查询订单
      * @params array
-     * @throws Wechat\WxPayException
+     * @throws wechat\WxPayException
      * @return array 查询结果
      */
     public function queryOrder($params)
     {
-        $input = new \Lib\Wechat\Data\WxPayOrderQuery();
+        $input = new \aggregation\lib\wechat\Data\WxPayOrderQuery();
         if(isset($params["transaction_id"]) && $params["transaction_id"] != ""){
             $input->SetTransaction_id($params['transaction_id']);
         }elseif(isset($params["out_trade_no"]) && $params["out_trade_no"] != ""){
             $input->SetOut_trade_no($params["out_trade_no"]);
         }
-        $result = Wechat\WxPayApi::orderQuery($input);
+        $result = wechat\WxPayApi::orderQuery($input);
         return $result;
     }
 
     /**
      *  交易退款
      * @params array
+     * @param $params
      * @return array 查询结果
+     * @throws wechat\WxPayException
      */
     public function refund($params)
     {
-        $input = new Wechat\Data\WxPayRefund();
+        $input = new wechat\Data\WxPayRefund();
         if(isset($params["transaction_id"]) && $params["transaction_id"] != ""){
             $transaction_id = $params["transaction_id"];
             $input->SetTransaction_id($transaction_id);
@@ -371,8 +373,8 @@ class WeChatJsApi extends  Base\BasePay{
         $input->SetTotal_fee($params["total_fee"]);
         $input->SetRefund_fee($params["refund_fee"]);
         $input->SetOut_refund_no($params["out_refund_no"]); //商户内部退款订单号
-        $input->SetOp_user_id(Wechat\WxPayConfig::$machine_id);
-        return Wechat\WxPayApi::refund($input);
+        $input->SetOp_user_id(wechat\WxPayConfig::$machine_id);
+        return wechat\WxPayApi::refund($input);
     }
 
     /**
@@ -385,10 +387,10 @@ class WeChatJsApi extends  Base\BasePay{
 
             $bill_date = $params["bill_date"];
             $bill_type = $params["bill_type"];
-            $input = new Wechat\Data\WxPayDownloadBill();
+            $input = new wechat\Data\WxPayDownloadBill();
             $input->SetBill_date($bill_date);
             $input->SetBill_type($bill_type);
-            return Wechat\WxPayApi::downloadBill($input);
+            return wechat\WxPayApi::downloadBill($input);
 
     }
 
@@ -398,7 +400,7 @@ class WeChatJsApi extends  Base\BasePay{
      * @return array 查询结果
      */
     public function refundQuery($params){
-        $input = new Wechat\Data\WxPayRefundQuery();
+        $input = new wechat\Data\WxPayRefundQuery();
         if(isset($params["transaction_id"]) && $params["transaction_id"] != ""){
             $transaction_id = $params["transaction_id"];
             $input->SetTransaction_id($transaction_id);
@@ -415,7 +417,7 @@ class WeChatJsApi extends  Base\BasePay{
             $refund_id = $params["refund_id"];
             $input->SetRefund_id($refund_id);
         }
-        return   Wechat\WxPayApi::refundQuery($input);
+        return   wechat\WxPayApi::refundQuery($input);
     }
 
     /**
@@ -427,12 +429,12 @@ class WeChatJsApi extends  Base\BasePay{
      * @return array 查询结果
      */
     public function closeOrder($params){
-        $input =   new Wechat\Data\WxPayCloseOrder();
+        $input =   new wechat\Data\WxPayCloseOrder();
         if(isset($params["out_trade_no"]) && $params["out_trade_no"] != ""){
             $out_trade_no = $params["out_trade_no"];
             $input->SetOut_trade_no($out_trade_no);
         }
-        return   Wechat\WxPayApi::closeOrder($input);
+        return   wechat\WxPayApi::closeOrder($input);
     }
 
     /**

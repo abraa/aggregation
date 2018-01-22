@@ -5,9 +5,9 @@
  * Date: 2017/7/28
  * Time: 11:00
  */
-namespace Aggregation\Pay;
-use \Aggregation\Pay\Base;
-use \Lib\Wechat;
+namespace aggregation\pay;
+use aggregation\pay\base;
+use aggregation\lib\wechat;
 
 
 class WeChatNative extends  Base\BasePay{
@@ -62,7 +62,7 @@ class WeChatNative extends  Base\BasePay{
     function init($config){
         $this->config = array_merge($this->config,$config);
         foreach($this->config as $key =>$value){
-            Wechat\WxPayConfig::$$key = $value;
+            wechat\WxPayConfig::$$key = $value;
         }
     }
 
@@ -73,11 +73,11 @@ class WeChatNative extends  Base\BasePay{
      */
     function setup(){
         return array(
-            "app_id"=>array("type"=>"String","name"=>"应用ID APP_ID","value"=>""),
-            "machine_id"=>array("type"=>"String","name"=>"商户号 MACHINE_ID","value"=>""),
-            "pay_key"=>array("type"=>"String","name"=>"支付密钥 PAY_KEY","value"=>""),
-            "app_secret"=>array("type"=>"String","name"=>"应用密钥 APP_SECRET","value"=>""),
-            "notify_url"=>array('type'=>"String","name"=>"异步通知Url NOTIFY_URL" , "value"=>""),
+            "app_id"=>array("type"=>"text","name"=>"应用ID APP_ID","value"=>""),
+            "machine_id"=>array("type"=>"text","name"=>"商户号 MACHINE_ID","value"=>""),
+            "pay_key"=>array("type"=>"text","name"=>"支付密钥 PAY_KEY","value"=>""),
+            "app_secret"=>array("type"=>"text","name"=>"应用密钥 APP_SECRET","value"=>""),
+            "notify_url"=>array('type'=>"text","name"=>"异步通知Url NOTIFY_URL" , "value"=>""),
         );
     }
 
@@ -87,26 +87,26 @@ class WeChatNative extends  Base\BasePay{
      * @return string
      */
     function getCode($data){
-
         //模式1.生成扫描支付URL(需要切换解开注释)
 //      $url = $this->GetPrePayUrl($data['product_id']);
 //        //转换短链接
-//        $input = new Wechat\Data\WxPayShortUrl();
+//        $input = new wechat\Data\WxPayShortUrl();
+//
 //        $input->SetLong_url($url);
-//        $result = Wechat\WxPayApi::shorturl($input);
+//        $result = wechat\WxPayApi::shorturl($input);
 //        if($result['short_url']){
 //            $url = $result['short_url'];
 //        }
         //模式2.统一下单
-        $input = new Wechat\Data\WxPayUnifiedOrder();
+        $input = new wechat\Data\WxPayUnifiedOrder();
         $input->SetBody($data['body']);         //商品描述
-        $input->SetAttach($data['attach']);         //附加数据 原样返回
+        isset($data['attach']) and $input->SetAttach($data['attach']);         //附加数据 原样返回
         $input->SetOut_trade_no($data['out_trade_no']); //商户订单号
-        if($data['fee_type']){$input->SetFee_type($data['fee_type']);}      //标价币种 默认人民币：CNY
+        isset($data['fee_type']) and $input->SetFee_type($data['fee_type']);      //标价币种 默认人民币：CNY
         $input->SetTotal_fee($data['total_fee']);   //标价金额 单位分
         $input->SetTime_start(date("YmdHis"));  //订单生成时间，格式为yyyyMMddHHmmss
         $input->SetTime_expire(date("YmdHis", time() + 600));   //订单失效时间，格式为yyyyMMddHHmmss
-        if($data['goods_tag']) {$input->SetGoods_tag($data['goods_tag']);}           //订单优惠标记
+        isset($data['goods_tag']) and $input->SetGoods_tag($data['goods_tag']);           //订单优惠标记
         $input->SetNotify_url($this->config['notify_url']);
         $input->SetTrade_type("NATIVE");       //扫码支付
         $input->SetProduct_id($data['product_id']);
@@ -121,8 +121,8 @@ class WeChatNative extends  Base\BasePay{
      */
     function notify($needSign = false){
         $msg = "OK";
-        $WxPayNotifyReply = new \Lib\Wechat\Data\WxPayNotifyReply();
-        $result = Wechat\WxPayApi::notify($msg);
+        $WxPayNotifyReply = new \aggregation\lib\wechat\Data\WxPayNotifyReply();
+        $result = wechat\WxPayApi::notify($msg);
         //验签
         if($result == false){
             $WxPayNotifyReply->SetReturn_code("FAIL");
@@ -138,7 +138,7 @@ class WeChatNative extends  Base\BasePay{
             $WxPayNotifyReply->SetSign();
         }
         //输出回wechat
-        Wechat\WxpayApi::replyNotify($WxPayNotifyReply->ToXml());
+        wechat\WxpayApi::replyNotify($WxPayNotifyReply->ToXml());
     }
 
     /**
@@ -147,8 +147,8 @@ class WeChatNative extends  Base\BasePay{
      */
     public function verify()
     {
-        $result = Wechat\WxPayApi::notify($msg);
-        //查询订单 如果需要查询建议在外面查询顺便判断是否和数据库一致
+        $result = wechat\WxPayApi::notify($msg);
+        //查询订单 如果需要查询建议在外面查询顺便判断是否和数据库一致   $this->queryOrder()
 //       $query_result =  $this->queryOrder($result);
 //        if(array_key_exists("return_code", $query_result)
 //            && array_key_exists("result_code", $query_result)
@@ -208,13 +208,13 @@ class WeChatNative extends  Base\BasePay{
      * 6、在支付成功通知中需要查单确认是否真正支付成功（见：notify.php）
      * @param $productId
      * @return string
-     * @internal param Wechat\Data\WxPayBizPayUrl $bizUrlInfo
+     * @internal param wechat\Data\WxPayBizPayUrl $bizUrlInfo
      */
     public function GetPrePayUrl($productId)
     {
-        $biz = new Wechat\Data\WxPayBizPayUrl();
+        $biz = new wechat\Data\WxPayBizPayUrl();
         $biz->SetProduct_id($productId);
-        $values = Wechat\WxpayApi::bizpayurl($biz);
+        $values = wechat\WxPayApi::bizpayurl($biz);
         $url = "weixin://wxpay/bizpayurl?" . $this->ToUrlParams($values);
         return $url;
     }
@@ -227,14 +227,14 @@ class WeChatNative extends  Base\BasePay{
      * 2、用户扫描二维码，进行支付
      * 3、支付完成之后，微信服务器会通知支付成功
      * 4、在支付成功通知中需要查单确认是否真正支付成功（见：notify.php）
-     * @param Wechat\Data\UnifiedOrderInput $input
+     * @param wechat\Data\UnifiedOrderInput $input
      * @return array
      */
     public function GetPayUrl($input)
     {
         if($input->GetTrade_type() == "NATIVE")
         {
-            $result = Wechat\WxPayApi::unifiedOrder($input);
+            $result = wechat\WxPayApi::unifiedOrder($input);
             return $result;
         }
     }
@@ -246,8 +246,8 @@ class WeChatNative extends  Base\BasePay{
      */
     public function nativeNotify($needSign = true){
         $msg = "OK";
-        $WxPayNotifyReply = new Wechat\Data\WxPayNotifyReply();
-        $data = Wechat\WxPayApi::notify($msg);
+        $WxPayNotifyReply = new wechat\Data\WxPayNotifyReply();
+        $data = wechat\WxPayApi::notify($msg);
         //验签
         if($data == false){
             $WxPayNotifyReply->SetReturn_code("FAIL");
@@ -261,7 +261,7 @@ class WeChatNative extends  Base\BasePay{
                 return false;
             }
             //统一下单
-            $input = new Wechat\Data\WxPayUnifiedOrder();
+            $input = new wechat\Data\WxPayUnifiedOrder();
             $input->SetBody($data['body']);         //商品描述
             $input->SetAttach($data['attach']);         //附加数据 原样返回
             $input->SetOut_trade_no($data['out_trade_no']); //商户订单号
@@ -274,7 +274,7 @@ class WeChatNative extends  Base\BasePay{
             $input->SetTrade_type("NATIVE");       //扫码支付
             $input->SetOpenid($data["openid"]);
             $input->SetProduct_id($data["product_id"]);
-            $result = Wechat\WxPayApi::unifiedOrder($input);
+            $result = wechat\WxPayApi::unifiedOrder($input);
             if(!array_key_exists("appid", $result) ||
                 !array_key_exists("mch_id", $result) ||
                 !array_key_exists("prepay_id", $result))
@@ -291,7 +291,7 @@ class WeChatNative extends  Base\BasePay{
         {
             $WxPayNotifyReply->SetSign();
         }
-        Wechat\WxpayApi::replyNotify($WxPayNotifyReply->ToXml());
+        wechat\WxpayApi::replyNotify($WxPayNotifyReply->ToXml());
 
     }
     /**
@@ -300,25 +300,25 @@ class WeChatNative extends  Base\BasePay{
      */
     public function pay($data)
     {
-
+        return $this->getCode($data);
     }
 
 
     /**
      *  查询订单
      * @params array
-     * @throws Wechat\WxPayException
+     * @throws wechat\WxPayException
      * @return array 查询结果
      */
     public function queryOrder($params)
     {
-        $input = new Wechat\Data\WxPayOrderQuery();
+        $input = new wechat\Data\WxPayOrderQuery();
         if(isset($params["transaction_id"]) && $params["transaction_id"] != ""){
             $input->SetTransaction_id($params['transaction_id']);
         }elseif(isset($params["out_trade_no"]) && $params["out_trade_no"] != ""){
             $input->SetOut_trade_no($params["out_trade_no"]);
         }
-        $result = Wechat\WxPayApi::orderQuery($input);
+        $result = wechat\WxPayApi::orderQuery($input);
         return $result;
     }
 
@@ -329,7 +329,7 @@ class WeChatNative extends  Base\BasePay{
      */
     public function refund($params)
     {
-        $input = new Wechat\Data\WxPayRefund();
+        $input = new wechat\Data\WxPayRefund();
         if(isset($params["transaction_id"]) && $params["transaction_id"] != ""){
             $transaction_id = $params["transaction_id"];
             $input->SetTransaction_id($transaction_id);
@@ -341,8 +341,8 @@ class WeChatNative extends  Base\BasePay{
         $input->SetTotal_fee($params["total_fee"]);
         $input->SetRefund_fee($params["refund_fee"]);
         $input->SetOut_refund_no($params["out_refund_no"]); //商户内部退款订单号
-        $input->SetOp_user_id(Wechat\WxPayConfig::$machine_id);
-        return Wechat\WxPayApi::refund($input);
+        $input->SetOp_user_id(wechat\WxPayConfig::$machine_id);
+        return wechat\WxPayApi::refund($input);
     }
 
     /**
@@ -355,10 +355,10 @@ class WeChatNative extends  Base\BasePay{
 
         $bill_date = $params["bill_date"];
         $bill_type = $params["bill_type"];
-        $input = new Wechat\Data\WxPayDownloadBill();
+        $input = new wechat\Data\WxPayDownloadBill();
         $input->SetBill_date($bill_date);
         $input->SetBill_type($bill_type);
-        return Wechat\WxPayApi::downloadBill($input);
+        return wechat\WxPayApi::downloadBill($input);
 
     }
 
@@ -368,7 +368,7 @@ class WeChatNative extends  Base\BasePay{
      * @return array 查询结果
      */
     public function refundQuery($params){
-        $input = new Wechat\Data\WxPayRefundQuery();
+        $input = new wechat\Data\WxPayRefundQuery();
         if(isset($params["transaction_id"]) && $params["transaction_id"] != ""){
             $transaction_id = $params["transaction_id"];
             $input->SetTransaction_id($transaction_id);
@@ -385,7 +385,7 @@ class WeChatNative extends  Base\BasePay{
                         $refund_id = $params["refund_id"];
                         $input->SetRefund_id($refund_id);
                     }
-        return   Wechat\WxPayApi::refundQuery($input);
+        return   wechat\WxPayApi::refundQuery($input);
     }
 
     /**
@@ -397,12 +397,12 @@ class WeChatNative extends  Base\BasePay{
      * @return array 查询结果
      */
     public function closeOrder($params){
-        $input =   new Wechat\Data\WxPayCloseOrder();
+        $input =   new wechat\Data\WxPayCloseOrder();
         if(isset($params["out_trade_no"]) && $params["out_trade_no"] != ""){
             $out_trade_no = $params["out_trade_no"];
             $input->SetOut_trade_no($out_trade_no);
         }
-        return   Wechat\WxPayApi::closeOrder($input);
+        return   wechat\WxPayApi::closeOrder($input);
     }
 
     /**

@@ -5,9 +5,9 @@
  * @author widyhu
  *
  */
-namespace Lib\Wechat\Data;
-use \Lib\Wechat\WxPayDataBase;
-use \Lib\Wechat\WxPayException;
+namespace aggregation\lib\wechat\Data;
+use \aggregation\lib\wechat\WxPayDataBase;
+use \aggregation\lib\wechat\WxPayException;
 
 class WxPayResults extends WxPayDataBase
 {

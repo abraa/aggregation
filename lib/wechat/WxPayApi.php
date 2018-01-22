@@ -1,6 +1,7 @@
 <?php
-namespace Lib\Wechat;
-use \Lib\Wechat\Data;
+namespace aggregation\lib\wechat;
+
+use aggregation\lib\wechat\Data;
 
 
 
@@ -395,7 +396,6 @@ class WxPayApi
 		
 		$inputObj->SetSign();//签名
 		$xml = $inputObj->ToXml();
-		
 		$startTimeStamp = self::getMillisecond();//请求开始时间
 		$response = self::postXmlCurl($xml, $url, false, $timeOut);
 		$result = Data\WxPayResults::Init($response);
@@ -524,11 +524,10 @@ class WxPayApi
      * @return mixed
 	 */
 	private static function postXmlCurl($xml, $url, $useCert = false, $second = 30)
-	{		
+	{
 		$ch = curl_init();
 		//设置超时
 		curl_setopt($ch, CURLOPT_TIMEOUT, $second);
-		
 		//如果有配置代理这里就设置代理
 		if(WxPayConfig::CURL_PROXY_HOST != "0.0.0.0" 
 			&& WxPayConfig::CURL_PROXY_PORT != 0){
@@ -560,7 +559,7 @@ class WxPayApi
 		if($data){
 			curl_close($ch);
 			return $data;
-		} else { 
+		} else {
 			$error = curl_errno($ch);
 			curl_close($ch);
 			throw new WxPayException("curl出错，错误码:$error");

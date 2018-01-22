@@ -5,9 +5,9 @@
  * Date: 2017/7/28
  * Time: 11:00
  */
-namespace Aggregation\Pay;
-use \Aggregation\Pay\Base;
-use \Lib\Wechat;
+namespace aggregation\pay;
+use \aggregation\pay\base;
+use \aggregation\lib\wechat;
 
 
 class WeChatMicropay extends  Base\BasePay{
@@ -62,7 +62,7 @@ class WeChatMicropay extends  Base\BasePay{
     function init($config){
         $this->config = array_merge($this->config,$config);
         foreach($this->config as $key =>$value){
-            Wechat\WxPayConfig::$$key = $value;
+            wechat\WxPayConfig::$$key = $value;
         }
     }
 
@@ -73,11 +73,11 @@ class WeChatMicropay extends  Base\BasePay{
      */
     function setup(){
         return array(
-            "app_id"=>array("type"=>"String","name"=>"应用ID APP_ID","value"=>""),
-            "machine_id"=>array("type"=>"String","name"=>"商户号 MACHINE_ID","value"=>""),
-            "pay_key"=>array("type"=>"String","name"=>"支付密钥 PAY_KEY","value"=>""),
-            "app_secret"=>array("type"=>"String","name"=>"应用密钥 APP_SECRET","value"=>""),
-            "notify_url"=>array('type'=>"String","name"=>"异步通知Url NOTIFY_URL" , "value"=>""),
+            "app_id"=>array("type"=>"text","name"=>"应用ID APP_ID","value"=>""),
+            "machine_id"=>array("type"=>"text","name"=>"商户号 MACHINE_ID","value"=>""),
+            "pay_key"=>array("type"=>"text","name"=>"支付密钥 PAY_KEY","value"=>""),
+            "app_secret"=>array("type"=>"text","name"=>"应用密钥 APP_SECRET","value"=>""),
+//            "notify_url"=>array('type'=>"String","name"=>"异步通知Url NOTIFY_URL" , "value"=>""),
         );
     }
 
@@ -96,8 +96,8 @@ class WeChatMicropay extends  Base\BasePay{
      */
     function notify($needSign = false){
         $msg = "OK";
-        $WxPayNotifyReply = new \Lib\Wechat\Data\WxPayNotifyReply();
-        $result = Wechat\WxPayApi::notify($msg);
+        $WxPayNotifyReply = new \aggregation\lib\wechat\Data\WxPayNotifyReply();
+        $result = wechat\WxPayApi::notify($msg);
         //验签
         if($result == false){
             $WxPayNotifyReply->SetReturn_code("FAIL");
@@ -112,7 +112,7 @@ class WeChatMicropay extends  Base\BasePay{
         {
             $WxPayNotifyReply->SetSign();
         }
-        Wechat\WxpayApi::replyNotify($WxPayNotifyReply->ToXml());
+        wechat\WxpayApi::replyNotify($WxPayNotifyReply->ToXml());
     }
 
     /**
@@ -121,7 +121,7 @@ class WeChatMicropay extends  Base\BasePay{
      */
     public function verify()
     {
-        $result = Wechat\WxPayApi::notify($msg);
+        $result = wechat\WxPayApi::notify($msg);
         return $result;
     }
 
@@ -153,13 +153,13 @@ class WeChatMicropay extends  Base\BasePay{
      *  直接调用api支付
      * @param $data
      * @return bool
-     * @throws Wechat\WxPayException
+     * @throws wechat\WxPayException
      * @internal param 参数参照微信统一下单接口 $array
      */
     public function pay($data)
     {
         //1.设置参数
-        $input = new Wechat\Data\WxPayMicroPay();
+        $input = new wechat\Data\WxPayMicroPay();
         $input->SetAuth_code($data["auth_code"]); //授权码
         $input->SetBody($data['body']);         //商品描述
         $input->SetAttach($data['attach']);         //附加数据 原样返回
@@ -167,13 +167,13 @@ class WeChatMicropay extends  Base\BasePay{
         if($data['fee_type']){$input->SetFee_type($data['fee_type']);}      //标价币种 默认人民币：CNY
         $input->SetTotal_fee($data['total_fee']);   //标价金额 单位分
         //2.提交被扫参数
-        $result = Wechat\WxPayApi::micropay($input, 5);
+        $result = wechat\WxPayApi::micropay($input, 5);
         //如果返回成功
         if(!array_key_exists("return_code", $result)
             || !array_key_exists("out_trade_no", $result)
             || !array_key_exists("result_code", $result))
         {
-            throw new Wechat\WxPayException("接口调用失败！");
+            throw new wechat\WxPayException("接口调用失败！");
         }
         //签名验证
         $out_trade_no = $input->GetOut_trade_no();
@@ -187,68 +187,52 @@ class WeChatMicropay extends  Base\BasePay{
         }
         //4、确认支付是否成功
         $queryTimes = 10;
+        $cancel = true; //判断是否需要撤单 true 撤
         while($queryTimes > 0)
         {
-            $succResult = 0;
             $queryResult = $this->queryOrder($out_trade_no);
-//            if($queryResult["return_code"] == "SUCCESS"
-//                && $queryResult["result_code"] == "SUCCESS")
-//            {
-//                //支付成功
-//                if($queryResult["trade_state"] == "SUCCESS"){
-//                    $succResult = 1;
-//
-//                }
-//                //用户支付中
-//                else if($result["trade_state"] == "USERPAYING"){
-//                    $succResult = 2;
-//
-//                }
-//            }
-//            //如果返回错误码为“此交易订单号不存在”则直接认定失败
-//            if($result["err_code"] == "ORDERNOTEXIST")
-//            {
-//                $succResult = 0;
-//            } else{
-//                //如果是系统错误，则后续继续
-//                $succResult = 2;
-//            }
-//
-//            //如果需要等待1s后继续
-//            if($succResult == 2){
-//                sleep(2);
-//                continue;
-//            } else if($succResult == 1){//查询成功
-//                return $queryResult;
-//            } else {//订单交易失败
-//                return false;
-//            }
+            //4.1判断查询结果
+            //4.2成功跳出
+            if($queryResult["return_code"] == "SUCCESS"
+                && $queryResult["result_code"] == "SUCCESS")
+            {
+                //支付成功
+                if($queryResult["trade_state"] == "SUCCESS"){
+                    $cancel = false;
+                    break;
+                }
+            }
+            //如果返回错误码为“此交易订单号不存在”则直接认定失败
+            if($queryResult["err_code"] == "ORDERNOTEXIST")
+            {
+               break;
+            }
+            sleep(2);
         }
-
         //5、次确认失败，则撤销订单
-        if(!$this->cancel($out_trade_no))
+        if($cancel && !$this->cancel(array("out_trade_no"=>$out_trade_no)))
         {
-            throw new Wechat\WxpayException("撤销单失败！");
+            throw new wechat\WxpayException("撤销单失败！");
         }
-        return false;
+        return true;
     }
 
 
     /**
      *  查询订单
      * @params array
-     * @throws Wechat\WxPayException
+     * @throws wechat\WxPayException
      * @return array 查询结果
      */
     public function queryOrder($params)
     {
-        $input = new \Lib\Wechat\Data\WxPayOrderQuery();
+        $input = new \aggregation\lib\wechat\Data\WxPayOrderQuery();
         if(isset($params["transaction_id"]) && $params["transaction_id"] != ""){
             $input->SetTransaction_id($params['transaction_id']);
         }elseif(isset($params["out_trade_no"]) && $params["out_trade_no"] != ""){
             $input->SetOut_trade_no($params["out_trade_no"]);
         }
-        $result = Wechat\WxPayApi::orderQuery($input);
+        $result = wechat\WxPayApi::orderQuery($input);
         return $result;
     }
 
@@ -259,7 +243,7 @@ class WeChatMicropay extends  Base\BasePay{
      */
     public function refund($params)
     {
-        $input = new Wechat\Data\WxPayRefund();
+        $input = new wechat\Data\WxPayRefund();
         if(isset($params["transaction_id"]) && $params["transaction_id"] != ""){
             $transaction_id = $params["transaction_id"];
             $input->SetTransaction_id($transaction_id);
@@ -271,8 +255,8 @@ class WeChatMicropay extends  Base\BasePay{
         $input->SetTotal_fee($params["total_fee"]);
         $input->SetRefund_fee($params["refund_fee"]);
         $input->SetOut_refund_no($params["out_refund_no"]); //商户内部退款订单号
-        $input->SetOp_user_id(Wechat\WxPayConfig::$machine_id);
-        return Wechat\WxPayApi::refund($input);
+        $input->SetOp_user_id(wechat\WxPayConfig::$machine_id);
+        return wechat\WxPayApi::refund($input);
     }
 
     /**
@@ -285,10 +269,10 @@ class WeChatMicropay extends  Base\BasePay{
 
         $bill_date = $params["bill_date"];
         $bill_type = $params["bill_type"];
-        $input = new Wechat\Data\WxPayDownloadBill();
+        $input = new wechat\Data\WxPayDownloadBill();
         $input->SetBill_date($bill_date);
         $input->SetBill_type($bill_type);
-        return Wechat\WxPayApi::downloadBill($input);
+        return wechat\WxPayApi::downloadBill($input);
 
     }
 
@@ -298,7 +282,7 @@ class WeChatMicropay extends  Base\BasePay{
      * @return array 查询结果
      */
     public function refundQuery($params){
-        $input = new Wechat\Data\WxPayRefundQuery();
+        $input = new wechat\Data\WxPayRefundQuery();
         if(isset($params["transaction_id"]) && $params["transaction_id"] != ""){
             $transaction_id = $params["transaction_id"];
             $input->SetTransaction_id($transaction_id);
@@ -315,9 +299,44 @@ class WeChatMicropay extends  Base\BasePay{
                         $refund_id = $params["refund_id"];
                         $input->SetRefund_id($refund_id);
                     }
-        return   Wechat\WxPayApi::refundQuery($input);
+        return   wechat\WxPayApi::refundQuery($input);
     }
 
+    /**
+     *
+     * 撤销订单，如果失败会重复调用10次
+     * @params array  out_trade_no | transaction_id
+     * @params int 调用深度 $depth
+     * @return boolean
+     */
+    public function cancel($params, $depth = 0)
+    {
+        if($depth > 10){
+            return false;
+        }
+        $clostOrder = new wechat\Data\WxPayReverse();
+        if(isset($params["out_trade_no"]) && $params["out_trade_no"] != ""){
+            $clostOrder->SetOut_trade_no($params['out_trade_no']);
+        }else
+        if(isset($params["transaction_id"]) && $params["transaction_id"] != ""){
+            $clostOrder->SetOut_trade_no($params['transaction_id']);
+        }
+        $result = wechat\WxPayApi::reverse($clostOrder);
+
+        //接口调用失败
+        if($result["return_code"] != "SUCCESS"){
+            return false;
+        }
+
+        //如果结果为success且不需要重新调用撤销，则表示撤销成功
+        if($result["result_code"] != "SUCCESS"
+            && $result["recall"] == "N"){
+            return true;
+        } else if($result["recall"] == "Y") {
+            return $this->cancel($params, ++$depth);
+        }
+        return false;
+    }
     /**
      *  关闭订单 WxPayCloseOrder中out_trade_no必填
      * appid、mchid、spbill_create_ip、nonce_str不需要填入
@@ -327,12 +346,12 @@ class WeChatMicropay extends  Base\BasePay{
      * @return array 查询结果
      */
     public function closeOrder($params){
-        $input =   new Wechat\Data\WxPayCloseOrder();
+        $input =   new wechat\Data\WxPayCloseOrder();
         if(isset($params["out_trade_no"]) && $params["out_trade_no"] != ""){
             $out_trade_no = $params["out_trade_no"];
             $input->SetOut_trade_no($out_trade_no);
         }
-        return   Wechat\WxPayApi::closeOrder($input);
+        return   wechat\WxPayApi::closeOrder($input);
     }
 
     /**

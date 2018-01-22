@@ -1,5 +1,5 @@
 <?php
-namespace Lib;
+namespace aggregation\lib;
 /**
  * 
  * 支付API异常类

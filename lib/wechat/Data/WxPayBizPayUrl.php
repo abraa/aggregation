@@ -1,6 +1,6 @@
 <?php
-namespace Lib\Wechat\Data;
-use \Lib\Wechat\WxPayDataBase;
+namespace aggregation\lib\wechat\Data;
+use \aggregation\lib\wechat\WxPayDataBase;
 /**
  *
  * 扫码支付模式一生成二维码参数

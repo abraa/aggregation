@@ -8,8 +8,8 @@
     "classmap": [
     ],
     "psr-4": {
-      "Aggregation\\Pay\\": "src",
-      "Lib\\": "lib"
+      "aggregation\\pay\\": "src",
+      "aggregation\\lib\\": "lib"
     },
     "files": [
     ]
