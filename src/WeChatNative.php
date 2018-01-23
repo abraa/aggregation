@@ -6,6 +6,7 @@
  * Time: 11:00
  */
 namespace aggregation\pay;
+use aggregation\lib\QRcode;
 use aggregation\pay\base;
 use aggregation\lib\wechat;
 
@@ -111,8 +112,12 @@ class WeChatNative extends  Base\BasePay{
         $input->SetTrade_type("NATIVE");       //扫码支付
         $input->SetProduct_id($data['product_id']);
         $result = $this->GetPayUrl($input);
-        $url = $result["code_url"];  //支付链接 (请将链接生成二维码)
-        return $url;
+        if("FAIL" == $result['return_code']){
+            return false;
+        }else{
+            $url = $result["code_url"];  //支付链接 (请将链接生成二维码)
+            return $url;
+        }
     }
 
     /**
@@ -420,5 +425,17 @@ class WeChatNative extends  Base\BasePay{
 
         }
         return $result;
+    }
+
+    /**
+     * url生成二维码
+     * @param $url
+     * @param bool $outfile
+     * @param int $level
+     * @param int $size
+     * @param int $margin
+     */
+    public function getQrCode($url , $outfile = false, $level = QR_ECLEVEL_L ,$size = 3, $margin = 4){
+        return QRcode::png($url, $outfile, $level , $size, $margin);
     }
 }

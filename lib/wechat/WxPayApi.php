@@ -1,7 +1,7 @@
 <?php
 namespace aggregation\lib\wechat;
 
-use aggregation\lib\wechat\Data;
+use aggregation\lib\wechat\Data\WxPayResults;
 
 
 
@@ -60,11 +60,10 @@ class WxPayApi
 		$inputObj->SetSign();
 		$xml = $inputObj->ToXml();
 		
-		$startTimeStamp = self::getMillisecond();//请求开始时间
+//		$startTimeStamp = self::getMillisecond();//请求开始时间
 		$response = self::postXmlCurl($xml, $url, false, $timeOut);
-		$result = Data\WxPayResults::Init($response);
-		self::reportCostTime($url, $startTimeStamp, $result);//上报请求花费时间
-		
+		$result = WxPayResults::Init($response);
+//		self::reportCostTime($url, $startTimeStamp, $result);//上报请求花费时间
 		return $result;
 	}
 	
@@ -91,10 +90,10 @@ class WxPayApi
 		$inputObj->SetSign();//签名
 		$xml = $inputObj->ToXml();
 		
-		$startTimeStamp = self::getMillisecond();//请求开始时间
+//		$startTimeStamp = self::getMillisecond();//请求开始时间
 		$response = self::postXmlCurl($xml, $url, false, $timeOut);
-		$result = Data\WxPayResults::Init($response);
-		self::reportCostTime($url, $startTimeStamp, $result);//上报请求花费时间
+		$result = WxPayResults::Init($response);
+//		self::reportCostTime($url, $startTimeStamp, $result);//上报请求花费时间
 		
 		return $result;
 	}
@@ -122,10 +121,10 @@ class WxPayApi
 		$inputObj->SetSign();//签名
 		$xml = $inputObj->ToXml();
 		
-		$startTimeStamp = self::getMillisecond();//请求开始时间
+//		$startTimeStamp = self::getMillisecond();//请求开始时间
 		$response = self::postXmlCurl($xml, $url, false, $timeOut);
-		$result = Data\WxPayResults::Init($response);
-		self::reportCostTime($url, $startTimeStamp, $result);//上报请求花费时间
+		$result = WxPayResults::Init($response);
+//		self::reportCostTime($url, $startTimeStamp, $result);//上报请求花费时间
 		
 		return $result;
 	}
@@ -161,10 +160,10 @@ class WxPayApi
 		
 		$inputObj->SetSign();//签名
 		$xml = $inputObj->ToXml();
-		$startTimeStamp = self::getMillisecond();//请求开始时间
+//		$startTimeStamp = self::getMillisecond();//请求开始时间
 		$response = self::postXmlCurl($xml, $url, true, $timeOut);
-		$result = Data\WxPayResults::Init($response);
-		self::reportCostTime($url, $startTimeStamp, $result);//上报请求花费时间
+		$result = WxPayResults::Init($response);
+//		self::reportCostTime($url, $startTimeStamp, $result);//上报请求花费时间
 		
 		return $result;
 	}
@@ -198,10 +197,10 @@ class WxPayApi
 		$inputObj->SetSign();//签名
 		$xml = $inputObj->ToXml();
 		
-		$startTimeStamp = self::getMillisecond();//请求开始时间
+//		$startTimeStamp = self::getMillisecond();//请求开始时间
 		$response = self::postXmlCurl($xml, $url, false, $timeOut);
-		$result = Data\WxPayResults::Init($response);
-		self::reportCostTime($url, $startTimeStamp, $result);//上报请求花费时间
+		$result = WxPayResults::Init($response);
+//		self::reportCostTime($url, $startTimeStamp, $result);//上报请求花费时间
 		
 		return $result;
 	}
@@ -268,10 +267,10 @@ class WxPayApi
 		$inputObj->SetSign();//签名
 		$xml = $inputObj->ToXml();
 		
-		$startTimeStamp = self::getMillisecond();//请求开始时间
+//		$startTimeStamp = self::getMillisecond();//请求开始时间
 		$response = self::postXmlCurl($xml, $url, false, $timeOut);
-		$result = Data\WxPayResults::Init($response);
-		self::reportCostTime($url, $startTimeStamp, $result);//上报请求花费时间
+		$result = WxPayResults::Init($response);
+//		self::reportCostTime($url, $startTimeStamp, $result);//上报请求花费时间
 		
 		return $result;
 	}
@@ -300,10 +299,10 @@ class WxPayApi
 		$inputObj->SetSign();//签名
 		$xml = $inputObj->ToXml();
 		
-		$startTimeStamp = self::getMillisecond();//请求开始时间
+//		$startTimeStamp = self::getMillisecond();//请求开始时间
 		$response = self::postXmlCurl($xml, $url, true, $timeOut);
-		$result = Data\WxPayResults::Init($response);
-		self::reportCostTime($url, $startTimeStamp, $result);//上报请求花费时间
+		$result = WxPayResults::Init($response);
+//		self::reportCostTime($url, $startTimeStamp, $result);//上报请求花费时间
 		
 		return $result;
 	}
@@ -342,7 +341,7 @@ class WxPayApi
 		$inputObj->SetSign();//签名
 		$xml = $inputObj->ToXml();
 		
-		$startTimeStamp = self::getMillisecond();//请求开始时间
+//		$startTimeStamp = self::getMillisecond();//请求开始时间
 		$response = self::postXmlCurl($xml, $url, false, $timeOut);
 		return $response;
 	}
@@ -396,11 +395,11 @@ class WxPayApi
 		
 		$inputObj->SetSign();//签名
 		$xml = $inputObj->ToXml();
-		$startTimeStamp = self::getMillisecond();//请求开始时间
+//		$startTimeStamp = self::getMillisecond();//请求开始时间
 		$response = self::postXmlCurl($xml, $url, false, $timeOut);
-		$result = Data\WxPayResults::Init($response);
-		self::reportCostTime($url, $startTimeStamp, $result);//上报请求花费时间
-		
+		$result = WxPayResults::Init($response);
+//		self::reportCostTime($url, $startTimeStamp, $result);//上报请求花费时间
+
 		return $result;
 	}
 	
@@ -413,10 +412,10 @@ class WxPayApi
 	public static function notify(&$msg)
 	{
 		//获取通知的数据
-		$xml = $GLOBALS['HTTP_RAW_POST_DATA'];
+		$xml = isset($GLOBALS['HTTP_RAW_POST_DATA']) ? $GLOBALS['HTTP_RAW_POST_DATA'] :  file_get_contents("php://input");
 		//如果返回成功则验证签名
 		try {
-			$result = Data\WxPayResults::Init($xml);
+			$result = WxPayResults::Init($xml);
 		} catch (WxPayException $e){
 			$msg = $e->errorMessage();
 			return false;
@@ -535,13 +534,18 @@ class WxPayApi
 			curl_setopt($ch,CURLOPT_PROXYPORT, WxPayConfig::CURL_PROXY_PORT);
 		}
 		curl_setopt($ch,CURLOPT_URL, $url);
-		curl_setopt($ch,CURLOPT_SSL_VERIFYPEER,TRUE);
-		curl_setopt($ch,CURLOPT_SSL_VERIFYHOST,2);//严格校验
+        if(stripos($url,"https://")!==FALSE){
+            curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+        }    else    {
+            curl_setopt($ch,CURLOPT_SSL_VERIFYPEER,TRUE);
+            curl_setopt($ch,CURLOPT_SSL_VERIFYHOST,2);//严格校验
+        }
 		//设置header
 		curl_setopt($ch, CURLOPT_HEADER, FALSE);
 		//要求结果为字符串且输出到屏幕上
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-	
 		if($useCert == true){
 			//设置证书
 			//使用证书：cert 与 key 分别属于两个.pem文件
