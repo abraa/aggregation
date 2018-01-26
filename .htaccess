@@ -1,0 +1,8 @@
+<IfModule mod_rewrite.c>
+  Options +FollowSymlinks
+  RewriteEngine On
+
+
+</IfModule>
+
+AddType text/cache-manifest manifest

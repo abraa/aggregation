@@ -10,6 +10,7 @@ namespace aggregation\pay\base;
 abstract class BasePay{
     /** @var array 配置参数数组 */
     protected $config = array() ;
+
     /**
      * 初始化对象
      * @param array
@@ -76,4 +77,5 @@ abstract class BasePay{
     function setConfig($key,$value){
         $this->config[$key] = $value;
     }
+
 }

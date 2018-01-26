@@ -1,0 +1,15 @@
+CACHE MANIFEST
+#在此标题下列出的文件将在首次下载后进行缓存
+# 2017-9-11 v1.0.0
+/theme.css
+/logo.gif
+/main.js
+
+NETWORK:
+#在此标题下列出的文件需要与服务器的连接，且不会被缓存
+index.html
+
+FALLBACK:
+#在此标题下列出的文件规定当页面无法访问时的回退页面（比如 404 页面）
+#FALLBACK是如果无法建立因特网连接，则用 "404.html" 替代 /html5/ 目录中的所有文件。
+/a.html http://www.baidu.com
