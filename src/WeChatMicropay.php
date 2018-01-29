@@ -164,7 +164,7 @@ class WeChatMicropay extends  Base\BasePay{
         $input->SetBody($data['body']);         //商品描述
         $input->SetAttach($data['attach']);         //附加数据 原样返回
         $input->SetOut_trade_no($data['out_trade_no']); //商户订单号
-        if($data['fee_type']){$input->SetFee_type($data['fee_type']);}      //标价币种 默认人民币：CNY
+        if(isset($data['fee_type'])){$input->SetFee_type($data['fee_type']);}      //标价币种 默认人民币：CNY
         $input->SetTotal_fee($data['total_fee']);   //标价金额 单位分
         //2.提交被扫参数
         $result = wechat\WxPayApi::micropay($input, 5);

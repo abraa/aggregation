@@ -288,7 +288,7 @@ class WeChatJsApi extends  Base\BasePay{
         $data["url"] = "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
         $time = time();
         $data["timestamp"] = "$time";
-        $data["noncestr"] = "1234568";
+        $data["noncestr"] = "".rand(10000000,999999999);
         $data["accesstoken"] = $getData["access_token"];
         ksort($data);
         $params = $this->ToUrlParams($data);
@@ -384,14 +384,12 @@ class WeChatJsApi extends  Base\BasePay{
      */
     public function downloadbill($params)
     {
-
-            $bill_date = $params["bill_date"];
-            $bill_type = $params["bill_type"];
-            $input = new wechat\Data\WxPayDownloadBill();
-            $input->SetBill_date($bill_date);
-            $input->SetBill_type($bill_type);
-            return wechat\WxPayApi::downloadBill($input);
-
+        $bill_date = $params["bill_date"];
+        $bill_type = $params["bill_type"];
+        $input = new wechat\Data\WxPayDownloadBill();
+        $input->SetBill_date($bill_date);
+        $input->SetBill_type($bill_type);
+        return wechat\WxPayApi::downloadBill($input);
     }
 
     /**
