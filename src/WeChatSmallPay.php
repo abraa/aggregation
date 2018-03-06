@@ -259,6 +259,7 @@ class WeChatSmallPay extends BasePay {
         $string = md5($string);
         //签名步骤四：所有字符转为大写
         $data['paySign'] = strtoupper($string);
+        unset($data['appId']);
         return $data;
 
     }
