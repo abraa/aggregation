@@ -235,4 +235,31 @@ class WeChatSmallPay extends BasePay {
         $buff = trim($buff, "&");
         return $buff;
     }
+
+
+    /**
+     * 小程序再次签名
+     * @param $package   prepay_id=wx2017033010242291fcfe0db70013231072
+     * @param $nonceStr  5K8264ILTKCH16CQ2502SI8ZNMTM67VS
+     * @return array
+     */
+    public function setSign($package, $nonceStr){
+        $data = array(
+            'package'=>$package,
+            'nonceStr'=>$nonceStr,
+            'timeStamp'=>time(),
+            'signType'=>'MD5',
+            'appId'=>WxPayConfig::$app_id,
+        );
+        //签名步骤一：按字典序排序参数
+        $string = $this->formatParaMap($data,false);
+        //签名步骤二：在string后加入KEY
+        $string = $string . "&key=".WxPayConfig::$pay_key;
+        //签名步骤三：MD5加密
+        $string = md5($string);
+        //签名步骤四：所有字符转为大写
+        $data['paySign'] = strtoupper($string);
+        return $data;
+
+    }
 }
