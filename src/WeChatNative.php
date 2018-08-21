@@ -58,7 +58,7 @@ class WeChatNative extends  Base\BasePay{
 
     /**
      * 初始化对象
-     * @param Array $config  配置参数数组
+     * @param array $config  配置参数数组
      */
     function init($config){
         $this->config = array_merge($this->config,$config);
@@ -70,7 +70,7 @@ class WeChatNative extends  Base\BasePay{
     /**
      * 返回初始化话对象需要的参数 init使用配置key
      *  type="|String|Text|Number|Date|"
-     * @return Array
+     * @return array
      */
     function setup(){
         return array(
@@ -123,6 +123,7 @@ class WeChatNative extends  Base\BasePay{
     /**
      * 输出到支付网站通知处理结果
      * @param boolean 是否需要签名输出
+     * @throws wechat\WxPayException
      */
     function notify($needSign = false){
         $msg = "OK";
@@ -246,8 +247,9 @@ class WeChatNative extends  Base\BasePay{
 
     /**
      *  模式1 确定支付之后，微信服务器会回调预先配置的回调地址，在【微信开放平台-微信支付-支付配置】中进行配置
-     * @param boolean  $needSign 微信返回数据
+     * @param boolean $needSign 微信返回数据
      * @return mixed
+     * @throws wechat\WxPayException
      */
     public function nativeNotify($needSign = true){
         $msg = "OK";
@@ -331,6 +333,7 @@ class WeChatNative extends  Base\BasePay{
      *  交易退款
      * @params array
      * @return array 查询结果
+     * @throws wechat\WxPayException
      */
     public function refund($params)
     {
@@ -354,6 +357,7 @@ class WeChatNative extends  Base\BasePay{
      *  下载账单
      * @params array
      * @return array 查询结果
+     * @throws wechat\WxPayException
      */
     public function downloadbill($params)
     {
@@ -371,6 +375,7 @@ class WeChatNative extends  Base\BasePay{
      *  查询退款
      * @params array
      * @return array 查询结果
+     * @throws wechat\WxPayException
      */
     public function refundQuery($params){
         $input = new wechat\Data\WxPayRefundQuery();

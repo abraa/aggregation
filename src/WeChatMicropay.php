@@ -69,7 +69,7 @@ class WeChatMicropay extends  Base\BasePay{
     /**
      * 返回初始化话对象需要的参数 init使用配置key
      *  type="|String|Text|Number|Date|"
-     * @return Array
+     * @return array
      */
     function setup(){
         return array(
@@ -93,6 +93,7 @@ class WeChatMicropay extends  Base\BasePay{
     /**
      * 输出到支付网站通知处理结果
      * @param boolean 是否需要签名输出
+     * @throws wechat\WxPayException
      */
     function notify($needSign = false){
         $msg = "OK";
@@ -240,6 +241,7 @@ class WeChatMicropay extends  Base\BasePay{
      *  交易退款
      * @params array
      * @return array 查询结果
+     * @throws wechat\WxPayException
      */
     public function refund($params)
     {
@@ -263,6 +265,7 @@ class WeChatMicropay extends  Base\BasePay{
      *  下载账单
      * @params array
      * @return array 查询结果
+     * @throws wechat\WxPayException
      */
     public function downloadbill($params)
     {

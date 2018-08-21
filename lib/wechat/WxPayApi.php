@@ -137,7 +137,7 @@ class WxPayApi
 	 * @param Data\WxPayRefund $inputObj
 	 * @param int $timeOut
 	 * @throws WxPayException
-	 * @return 成功时返回，其他抛异常
+	 * @return array 成功时返回，其他抛异常
 	 */
 	public static function refund($inputObj, $timeOut = 6)
 	{
@@ -178,7 +178,7 @@ class WxPayApi
 	 * @param Data\WxPayRefundQuery $inputObj
 	 * @param int $timeOut
 	 * @throws WxPayException
-	 * @return 成功时返回，其他抛异常
+	 * @return array 成功时返回，其他抛异常
 	 */
 	public static function refundQuery($inputObj, $timeOut = 6)
 	{
@@ -211,7 +211,7 @@ class WxPayApi
 	 * @param Data\WxPayDownloadBill $inputObj
 	 * @param int $timeOut
 	 * @throws WxPayException
-	 * @return 成功时返回，其他抛异常
+	 * @return mixed 成功时返回，其他抛异常
 	 */
 	public static function downloadBill($inputObj, $timeOut = 6)
 	{
@@ -380,7 +380,7 @@ class WxPayApi
 	 * @param Data\WxPayShortUrl $inputObj
 	 * @param int $timeOut
 	 * @throws WxPayException
-	 * @return 成功时返回，其他抛异常
+	 * @return array 成功时返回，其他抛异常
 	 */
 	public static function shorturl($inputObj, $timeOut = 6)
 	{

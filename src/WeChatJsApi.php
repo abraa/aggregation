@@ -6,6 +6,7 @@
  * Time: 11:00
  */
 namespace aggregation\pay;
+
 use \aggregation\pay\base;
 use \aggregation\lib\wechat;
 
@@ -57,7 +58,7 @@ class WeChatJsApi extends  Base\BasePay{
 
     /**
      * 初始化对象
-     * @param Array $config  配置参数数组
+     * @param array $config  配置参数数组
      */
     function init($config){
         $this->config = array_merge($this->config,$config);
@@ -69,7 +70,7 @@ class WeChatJsApi extends  Base\BasePay{
     /**
      * 返回初始化话对象需要的参数 init使用配置key
      *  type="|String|Text|Number|Date|"
-     * @return Array
+     * @return array
      */
     function setup(){
         return array(
@@ -81,13 +82,20 @@ class WeChatJsApi extends  Base\BasePay{
             );
     }
 
-    function getCode($data){
-        return "";
+    /**
+     * @param $data
+     * @param string $openid
+     * @return array|String
+     * @throws wechat\WxPayException
+     */
+    function getCode($data, $openid = ''){
+        return $this->pay($data, $openid);
     }
 
     /**
      * 输出到支付网站通知处理结果
      * @param boolean 是否需要签名输出
+     * @throws wechat\WxPayException
      */
     function notify($needSign = false){
         $msg = "OK";
@@ -120,28 +128,7 @@ class WeChatJsApi extends  Base\BasePay{
         return $result;
     }
 
-    /**
-     * 格式化参数
-     * @param array $paraMap
-     * @param boolean $urlencode
-     * @return string
-     */
-    function formatParaMap($paraMap, $urlencode = false){
-        $buff = "";
-        ksort($paraMap);
-        foreach ($paraMap as $k => $v)
-        {
-            if($urlencode)
-            {
-                $v = urlencode($v);
-            }
-            if($k != "sign"){
-            $buff .= $k . "=" . $v . "&";
-            }
-        }
-        $buff = trim($buff, "&");
-        return $buff;
-    }
+
 
     /**
      *
@@ -309,12 +296,16 @@ class WeChatJsApi extends  Base\BasePay{
     /**
      *  直接调用api支付
      * @param array 参数参照微信统一下单接口
+     * @param string $openId
      * @return array
+     * @throws wechat\WxPayException
      */
-    public function pay($data)
+    public function pay($data, $openId = '')
     {
         //1. 获取openid
-        $openId = $this->GetOpenid();
+        if(empty($openId)){
+            $openId = $this->GetOpenid();
+        }
         //2.统一下单
         $input = new wechat\Data\WxPayUnifiedOrder();
         $input->SetBody($data['body']);         //商品描述
@@ -450,5 +441,54 @@ class WeChatJsApi extends  Base\BasePay{
 
         }
         return $result;
+    }
+    /**
+     * 格式化参数
+     * @param array $paraMap
+     * @param boolean $urlencode
+     * @return string
+     */
+    function formatParaMap($paraMap, $urlencode = false){
+        $buff = "";
+        ksort($paraMap);
+        foreach ($paraMap as $k => $v)
+        {
+            if($urlencode)
+            {
+                $v = urlencode($v);
+            }
+            if($k != "sign"){
+                $buff .= $k . "=" . $v . "&";
+            }
+        }
+        $buff = trim($buff, "&");
+        return $buff;
+    }
+
+    /**
+     * 签名js调用参数
+     * @param $package   prepay_id=wx2017033010242291fcfe0db70013231072
+     * @param $nonceStr  5K8264ILTKCH16CQ2502SI8ZNMTM67VS
+     * @return array
+     */
+    public function setSign($package, $nonceStr){
+        $data = array(
+            'package'=>$package,
+            'nonceStr'=>$nonceStr,
+            'timeStamp'=>time(),
+            'signType'=>'MD5',
+            'appId'=>wechat\WxPayConfig::$app_id,
+        );
+        //签名步骤一：按字典序排序参数
+        $string = $this->formatParaMap($data,false);
+        //签名步骤二：在string后加入KEY
+        $string = $string . "&key=".wechat\WxPayConfig::$pay_key;
+        //签名步骤三：MD5加密
+        $string = md5($string);
+        //签名步骤四：所有字符转为大写
+        $data['paySign'] = strtoupper($string);
+        unset($data['appId']);
+        return $data;
+
     }
 }
