@@ -311,12 +311,12 @@ class WeChatJsApi extends  Base\BasePay{
         $input->SetBody($data['body']);         //商品描述
         $input->SetAttach($data['attach']);         //附加数据 原样返回
         $input->SetOut_trade_no($data['out_trade_no']); //商户订单号
-        if($data['fee_type']){$input->SetFee_type($data['fee_type']);}      //标价币种 默认人民币：CNY
+        if(isset($data['fee_type'])){$input->SetFee_type($data['fee_type']);}      //标价币种 默认人民币：CNY
 
         $input->SetTotal_fee($data['total_fee']);   //标价金额 单位分
         $input->SetTime_start(date("YmdHis"));  //订单生成时间，格式为yyyyMMddHHmmss
         $input->SetTime_expire(date("YmdHis", time() + 600));   //订单失效时间，格式为yyyyMMddHHmmss
-        if($data['goods_tag']) {$input->SetGoods_tag($data['goods_tag']);}           //订单优惠标记
+        if(isset($data['goods_tag'])) {$input->SetGoods_tag($data['goods_tag']);}           //订单优惠标记
         $input->SetNotify_url($this->config['notify_url']);
         $input->SetTrade_type("JSAPI");       //JSAPI支付
         $input->SetOpenid($openId);
