@@ -105,8 +105,8 @@ class WeChatNative extends  Base\BasePay{
         $input->SetOut_trade_no($data['out_trade_no']); //商户订单号
         isset($data['fee_type']) and $input->SetFee_type($data['fee_type']);      //标价币种 默认人民币：CNY
         $input->SetTotal_fee($data['total_fee']);   //标价金额 单位分
-        $input->SetTime_start(date("YmdHis"));  //订单生成时间，格式为yyyyMMddHHmmss
-        $input->SetTime_expire(date("YmdHis", time() + 600));   //订单失效时间，格式为yyyyMMddHHmmss
+        $input->SetTime_start(gmdate("YmdHis"));  //订单生成时间，格式为yyyyMMddHHmmss
+        $input->SetTime_expire(gmdate("YmdHis", time() + 8 * 3600 + 600));   //订单失效时间，格式为yyyyMMddHHmmss
         isset($data['goods_tag']) and $input->SetGoods_tag($data['goods_tag']);           //订单优惠标记
         $input->SetNotify_url($this->config['notify_url']);
         $input->SetTrade_type("NATIVE");       //扫码支付

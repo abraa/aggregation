@@ -314,8 +314,8 @@ class WeChatJsApi extends  Base\BasePay{
         if(isset($data['fee_type'])){$input->SetFee_type($data['fee_type']);}      //标价币种 默认人民币：CNY
 
         $input->SetTotal_fee($data['total_fee']);   //标价金额 单位分
-        $input->SetTime_start(date("YmdHis"));  //订单生成时间，格式为yyyyMMddHHmmss
-        $input->SetTime_expire(date("YmdHis", time() + 600));   //订单失效时间，格式为yyyyMMddHHmmss
+        $input->SetTime_start(gmdate("YmdHis"));  //订单生成时间，格式为yyyyMMddHHmmss
+        $input->SetTime_expire(gmdate("YmdHis", time() + 8 * 3600 + 600));   //订单失效时间，格式为yyyyMMddHHmmss
         if(isset($data['goods_tag'])) {$input->SetGoods_tag($data['goods_tag']);}           //订单优惠标记
         $input->SetNotify_url($this->config['notify_url']);
         $input->SetTrade_type("JSAPI");       //JSAPI支付
